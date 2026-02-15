@@ -10,6 +10,7 @@ import { HealthTimeline } from '@/components/HealthTimeline';
 import { RecommendationsPanel } from '@/components/RecommendationsPanel';
 import { DetectionLog } from '@/components/DetectionLog';
 import { ReportExport } from '@/components/ReportExport';
+import { WebcamAnalysis } from '@/components/WebcamAnalysis';
 
 const Index = () => {
   const { currentSnapshot, history, isLive, setIsLive } = useEmotionSimulator(2000);
@@ -67,8 +68,9 @@ const Index = () => {
           transition={{ duration: 0.5 }}
           className="grid grid-cols-1 lg:grid-cols-12 gap-4"
         >
-          {/* Left Column - Emotions */}
+          {/* Left Column - Emotions & Webcam */}
           <div className="lg:col-span-3 space-y-4">
+            <WebcamAnalysis />
             <EmotionPanel
               emotions={currentSnapshot.emotions}
               dominantEmotion={currentSnapshot.dominantEmotion}
