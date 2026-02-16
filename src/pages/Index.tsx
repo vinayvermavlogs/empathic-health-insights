@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { Activity, Pause, Play, Radio } from 'lucide-react';
+import { Activity, Pause, Play, Radio, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEmotionSimulator } from '@/hooks/useEmotionSimulator';
+import { useTheme } from '@/hooks/useTheme';
 import { getRecommendations } from '@/lib/healthMapping';
 import { EmotionPanel } from '@/components/EmotionPanel';
 import { HealthMetricsPanel } from '@/components/HealthMetricsPanel';
@@ -14,6 +15,7 @@ import { WebcamAnalysis } from '@/components/WebcamAnalysis';
 
 const Index = () => {
   const { currentSnapshot, history, isLive, setIsLive } = useEmotionSimulator(2000);
+  const { theme, toggleTheme } = useTheme();
 
   if (!currentSnapshot) {
     return (
@@ -42,7 +44,7 @@ const Index = () => {
               <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Emotion & Health Monitor</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <span className="text-xs font-mono text-muted-foreground hidden sm:inline">
               {currentSnapshot.timestamp.toLocaleTimeString()}
             </span>
@@ -54,6 +56,15 @@ const Index = () => {
             >
               {isLive ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
               {isLive ? 'Pause' : 'Resume'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleTheme}
+              className="gap-1.5 text-xs border-border"
+            >
+              {theme === 'dark' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
+              <span className="hidden sm:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
             </Button>
             <ReportExport history={history} sessionId="SESSION-001" />
           </div>
