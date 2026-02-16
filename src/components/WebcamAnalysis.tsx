@@ -1,15 +1,52 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, CameraOff, Loader2, ScanFace } from 'lucide-react';
+import { Camera, CameraOff, Loader2, ScanFace, Eye, Droplets, Hand, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { EmotionReading, EmotionType, getEmotionColor, emotionLabels, mapEmotionsToHealth, getRecommendations } from '@/lib/healthMapping';
 import { toast } from 'sonner';
+import { SkinAnalysisPanel } from '@/components/SkinAnalysisPanel';
+import { EyeAnalysisPanel } from '@/components/EyeAnalysisPanel';
+import { BlinkSignalBanner } from '@/components/BlinkSignalBanner';
+import { GestureSignalsPanel } from '@/components/GestureSignalsPanel';
+
+export interface SkinAnalysis {
+  condition: string;
+  hydration: string;
+  concerns: string[];
+  skinTone: string;
+  overallScore: number;
+}
+
+export interface EyeAnalysis {
+  strain: string;
+  redness: string;
+  darkCircles: string;
+  moisture: string;
+  pupilDilation: string;
+  retinaObservation: string;
+  overallHealth: string;
+}
+
+export interface BlinkDetection {
+  isBlinking: boolean;
+  eyeOpenness: string;
+}
+
+export interface GestureSignal {
+  gesture: string;
+  meaning: string;
+  confidence: number;
+}
 
 interface FaceAnalysisResult {
   emotions: { emotion: EmotionType; confidence: number }[];
   facialDetails: string;
   overallMood: string;
+  skinAnalysis?: SkinAnalysis;
+  eyeAnalysis?: EyeAnalysis;
+  blinkDetection?: BlinkDetection;
+  gestureSignals?: GestureSignal[];
 }
 
 export function WebcamAnalysis() {
@@ -21,11 +58,13 @@ export function WebcamAnalysis() {
   const [lastResult, setLastResult] = useState<FaceAnalysisResult | null>(null);
   const [healthFromFace, setHealthFromFace] = useState<ReturnType<typeof mapEmotionsToHealth> | null>(null);
   const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [blinkCount, setBlinkCount] = useState(0);
+  const [signalMessage, setSignalMessage] = useState<string | null>(null);
 
   const startCamera = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -42,6 +81,8 @@ export function WebcamAnalysis() {
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
     setIsActive(false);
+    setBlinkCount(0);
+    setSignalMessage(null);
   }, []);
 
   useEffect(() => {
@@ -49,6 +90,17 @@ export function WebcamAnalysis() {
       streamRef.current?.getTracks().forEach(t => t.stop());
     };
   }, []);
+
+  // Blink pattern detection
+  useEffect(() => {
+    if (blinkCount >= 3) {
+      setSignalMessage('👋 Good Morning, Ma\'am! Have a wonderful day!');
+      setTimeout(() => {
+        setSignalMessage(null);
+        setBlinkCount(0);
+      }, 5000);
+    }
+  }, [blinkCount]);
 
   const captureAndAnalyze = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current || isAnalyzing) return;
@@ -84,6 +136,11 @@ export function WebcamAnalysis() {
       const result = data as FaceAnalysisResult;
       setLastResult(result);
 
+      // Track blinks
+      if (result.blinkDetection?.isBlinking) {
+        setBlinkCount(prev => prev + 1);
+      }
+
       const emotionReadings: EmotionReading[] = result.emotions.map(e => ({
         emotion: e.emotion,
         confidence: e.confidence,
@@ -106,7 +163,11 @@ export function WebcamAnalysis() {
   return (
     <div className="metric-card">
       <div className="scan-line" />
-      <div className="flex items-center justify-between mb-4">
+
+      {/* Signal Message Banner */}
+      <BlinkSignalBanner message={signalMessage} blinkCount={blinkCount} />
+
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <ScanFace className="w-4 h-4 text-primary" />
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -124,8 +185,8 @@ export function WebcamAnalysis() {
         </Button>
       </div>
 
-      {/* Video Feed */}
-      <div className="relative rounded-lg overflow-hidden bg-secondary mb-4 aspect-video">
+      {/* Video Feed - Larger */}
+      <div className="relative rounded-lg overflow-hidden bg-secondary mb-3 aspect-[4/3]">
         <video
           ref={videoRef}
           autoPlay
@@ -135,13 +196,19 @@ export function WebcamAnalysis() {
         />
         {!isActive && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-            <Camera className="w-8 h-8 mb-2 opacity-30" />
+            <Camera className="w-10 h-10 mb-2 opacity-30" />
             <p className="text-xs">Camera off</p>
           </div>
         )}
         {isAnalyzing && (
           <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
             <Loader2 className="w-6 h-6 text-primary animate-spin" />
+          </div>
+        )}
+        {/* Blink counter overlay */}
+        {isActive && blinkCount > 0 && (
+          <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-md px-2 py-1 text-xs font-mono text-primary">
+            Blinks: {blinkCount}/3
           </div>
         )}
         <canvas ref={canvasRef} className="hidden" />
@@ -152,7 +219,7 @@ export function WebcamAnalysis() {
         <Button
           onClick={captureAndAnalyze}
           disabled={isAnalyzing}
-          className="w-full gap-2 mb-4 bg-primary text-primary-foreground hover:bg-primary/90"
+          className="w-full gap-2 mb-3 bg-primary text-primary-foreground hover:bg-primary/90"
         >
           {isAnalyzing ? (
             <>
@@ -176,7 +243,7 @@ export function WebcamAnalysis() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="space-y-4"
+            className="space-y-3"
           >
             {/* Overall Mood */}
             <div className="text-center py-2">
@@ -185,13 +252,11 @@ export function WebcamAnalysis() {
             </div>
 
             {/* Emotion Bars */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {lastResult.emotions.map((e) => (
-                <div key={e.emotion} className="space-y-1">
+                <div key={e.emotion} className="space-y-0.5">
                   <div className="flex justify-between text-xs">
-                    <span className="text-secondary-foreground">
-                      {emotionLabels[e.emotion]}
-                    </span>
+                    <span className="text-secondary-foreground">{emotionLabels[e.emotion]}</span>
                     <span className="font-mono text-muted-foreground">{e.confidence}%</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
@@ -212,6 +277,21 @@ export function WebcamAnalysis() {
               <span className="text-xs text-muted-foreground uppercase tracking-wider">Facial Details</span>
               <p className="text-xs text-secondary-foreground mt-1">{lastResult.facialDetails}</p>
             </div>
+
+            {/* Skin Analysis */}
+            {lastResult.skinAnalysis && (
+              <SkinAnalysisPanel skin={lastResult.skinAnalysis} />
+            )}
+
+            {/* Eye Analysis */}
+            {lastResult.eyeAnalysis && (
+              <EyeAnalysisPanel eye={lastResult.eyeAnalysis} />
+            )}
+
+            {/* Gesture Signals */}
+            {lastResult.gestureSignals && lastResult.gestureSignals.length > 0 && (
+              <GestureSignalsPanel gestures={lastResult.gestureSignals} />
+            )}
 
             {/* Derived Health */}
             {healthFromFace && (
