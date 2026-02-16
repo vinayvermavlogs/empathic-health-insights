@@ -38,20 +38,16 @@ serve(async (req) => {
           messages: [
             {
               role: "system",
-              content: `You are an expert facial emotion analyzer. Analyze the person's face in the image and return a JSON object with the following structure. Do NOT include any text outside the JSON.
-
-{
-  "emotions": [
-    { "emotion": "<one of: happiness, stress, anxiety, sadness, calmness, focus, fatigue, neutral>", "confidence": <0-100> }
-  ],
-  "facialDetails": "<brief description of facial features observed: eye openness, brow position, mouth shape, skin tone, etc.>",
-  "overallMood": "<one word summary>"
-}
+              content: `You are an expert facial, skin, and eye analyzer with medical-grade observation skills. Analyze the person's face in the image and return structured data via the report_face_analysis tool.
 
 Rules:
 - Return 3-6 emotions sorted by confidence descending
 - Confidences must sum to approximately 100
 - Only use these emotion types: happiness, stress, anxiety, sadness, calmness, focus, fatigue, neutral
+- For skinAnalysis: examine skin tone, texture, hydration, acne, dark spots, wrinkles, pores, redness
+- For eyeAnalysis: examine eye redness, pupil dilation, dark circles, eye strain signs, moisture level, retina visibility
+- For blinkDetection: estimate if eyes appear closed/half-closed (blinking) or open. Set isBlinking=true if eyes appear closed or nearly closed
+- For gestureSignals: detect any hand gestures near face, head tilts, nods, or facial gestures that could represent sign language or communication signals
 - Be accurate and honest about what you see`,
             },
             {
@@ -59,7 +55,7 @@ Rules:
               content: [
                 {
                   type: "text",
-                  text: "Analyze the emotions visible on this person's face. Return only valid JSON.",
+                  text: "Analyze this face comprehensively: emotions, skin health, eye/retina condition, blink state, and any gesture signals. Return via the tool.",
                 },
                 {
                   type: "image_url",
@@ -74,8 +70,8 @@ Rules:
             {
               type: "function",
               function: {
-                name: "report_emotions",
-                description: "Report the detected emotions from the face analysis",
+                name: "report_face_analysis",
+                description: "Report comprehensive face analysis results",
                 parameters: {
                   type: "object",
                   properties: {
@@ -96,14 +92,65 @@ Rules:
                     },
                     facialDetails: { type: "string" },
                     overallMood: { type: "string" },
+                    skinAnalysis: {
+                      type: "object",
+                      properties: {
+                        condition: { type: "string", enum: ["excellent", "good", "fair", "poor"] },
+                        hydration: { type: "string", enum: ["well-hydrated", "normal", "dry", "very-dry"] },
+                        concerns: {
+                          type: "array",
+                          items: { type: "string" },
+                        },
+                        skinTone: { type: "string" },
+                        overallScore: { type: "number" },
+                      },
+                      required: ["condition", "hydration", "concerns", "skinTone", "overallScore"],
+                      additionalProperties: false,
+                    },
+                    eyeAnalysis: {
+                      type: "object",
+                      properties: {
+                        strain: { type: "string", enum: ["none", "mild", "moderate", "severe"] },
+                        redness: { type: "string", enum: ["none", "mild", "moderate", "severe"] },
+                        darkCircles: { type: "string", enum: ["none", "mild", "moderate", "severe"] },
+                        moisture: { type: "string", enum: ["normal", "dry", "watery"] },
+                        pupilDilation: { type: "string", enum: ["normal", "dilated", "constricted"] },
+                        retinaObservation: { type: "string" },
+                        overallHealth: { type: "string", enum: ["healthy", "mild-concern", "needs-attention"] },
+                      },
+                      required: ["strain", "redness", "darkCircles", "moisture", "pupilDilation", "retinaObservation", "overallHealth"],
+                      additionalProperties: false,
+                    },
+                    blinkDetection: {
+                      type: "object",
+                      properties: {
+                        isBlinking: { type: "boolean" },
+                        eyeOpenness: { type: "string", enum: ["fully-open", "half-open", "nearly-closed", "closed"] },
+                      },
+                      required: ["isBlinking", "eyeOpenness"],
+                      additionalProperties: false,
+                    },
+                    gestureSignals: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          gesture: { type: "string" },
+                          meaning: { type: "string" },
+                          confidence: { type: "number" },
+                        },
+                        required: ["gesture", "meaning", "confidence"],
+                        additionalProperties: false,
+                      },
+                    },
                   },
-                  required: ["emotions", "facialDetails", "overallMood"],
+                  required: ["emotions", "facialDetails", "overallMood", "skinAnalysis", "eyeAnalysis", "blinkDetection", "gestureSignals"],
                   additionalProperties: false,
                 },
               },
             },
           ],
-          tool_choice: { type: "function", function: { name: "report_emotions" } },
+          tool_choice: { type: "function", function: { name: "report_face_analysis" } },
         }),
       }
     );
@@ -128,13 +175,11 @@ Rules:
 
     const data = await response.json();
 
-    // Extract from tool call
     let result;
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
       result = JSON.parse(toolCall.function.arguments);
     } else {
-      // Fallback: try parsing content as JSON
       const content = data.choices?.[0]?.message?.content || "";
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {

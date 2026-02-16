@@ -66,27 +66,27 @@ const Index = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-4"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4"
         >
-          {/* Left Column - Emotions & Webcam */}
-          <div className="lg:col-span-3 space-y-4">
+          {/* Left Column - Webcam & Emotions */}
+          <div className="md:col-span-2 lg:col-span-4 space-y-4 order-1">
             <WebcamAnalysis />
-            <EmotionPanel
-              emotions={currentSnapshot.emotions}
-              dominantEmotion={currentSnapshot.dominantEmotion}
-            />
-            <RecommendationsPanel recommendations={recommendations} />
           </div>
 
           {/* Center Column - Charts */}
-          <div className="lg:col-span-6 space-y-4">
+          <div className="md:col-span-1 lg:col-span-5 space-y-4 order-3 lg:order-2">
             <HealthMetricsPanel metrics={currentSnapshot.health} />
             <EmotionTimeline history={history} />
             <HealthTimeline history={history} />
           </div>
 
-          {/* Right Column - Log */}
-          <div className="lg:col-span-3">
+          {/* Right Column - Panels & Log */}
+          <div className="md:col-span-1 lg:col-span-3 space-y-4 order-2 lg:order-3">
+            <EmotionPanel
+              emotions={currentSnapshot.emotions}
+              dominantEmotion={currentSnapshot.dominantEmotion}
+            />
+            <RecommendationsPanel recommendations={recommendations} />
             <DetectionLog history={history} />
           </div>
         </motion.div>
