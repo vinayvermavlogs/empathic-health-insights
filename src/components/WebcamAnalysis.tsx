@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, CameraOff, Loader2, ScanFace, Eye, Droplets, Hand, AlertCircle } from 'lucide-react';
+import { Camera, CameraOff, Loader2, ScanFace, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { EmotionReading, EmotionType, getEmotionColor, emotionLabels, mapEmotionsToHealth, getRecommendations } from '@/lib/healthMapping';
@@ -60,6 +60,9 @@ export function WebcamAnalysis() {
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [blinkCount, setBlinkCount] = useState(0);
   const [signalMessage, setSignalMessage] = useState<string | null>(null);
+  const [autoCapture, setAutoCapture] = useState(false);
+  const autoCaptureRef = useRef(false);
+  const blinkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const startCamera = useCallback(async () => {
     try {
@@ -91,15 +94,23 @@ export function WebcamAnalysis() {
     };
   }, []);
 
-  // Blink pattern detection
+  // Blink pattern detection — reset after 8 seconds of no new blinks
   useEffect(() => {
+    if (blinkCount > 0 && blinkCount < 3) {
+      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+      blinkTimeoutRef.current = setTimeout(() => setBlinkCount(0), 8000);
+    }
     if (blinkCount >= 3) {
       setSignalMessage('👋 Good Morning, Ma\'am! Have a wonderful day!');
+      toast.success('Blink signal detected! 👋');
       setTimeout(() => {
         setSignalMessage(null);
         setBlinkCount(0);
-      }, 5000);
+      }, 6000);
     }
+    return () => {
+      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+    };
   }, [blinkCount]);
 
   const captureAndAnalyze = useCallback(async () => {
@@ -160,6 +171,21 @@ export function WebcamAnalysis() {
     }
   }, [isAnalyzing]);
 
+  // Auto-capture loop
+  useEffect(() => {
+    autoCaptureRef.current = autoCapture;
+  }, [autoCapture]);
+
+  useEffect(() => {
+    if (!isActive || !autoCapture) return;
+    const interval = setInterval(() => {
+      if (autoCaptureRef.current && !isAnalyzing) {
+        captureAndAnalyze();
+      }
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [isActive, autoCapture, captureAndAnalyze, isAnalyzing]);
+
   return (
     <div className="metric-card">
       <div className="scan-line" />
@@ -214,25 +240,35 @@ export function WebcamAnalysis() {
         <canvas ref={canvasRef} className="hidden" />
       </div>
 
-      {/* Analyze Button */}
+      {/* Analyze Buttons */}
       {isActive && (
-        <Button
-          onClick={captureAndAnalyze}
-          disabled={isAnalyzing}
-          className="w-full gap-2 mb-3 bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          {isAnalyzing ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Analyzing...
-            </>
-          ) : (
-            <>
-              <ScanFace className="w-4 h-4" />
-              Analyze Face
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2 mb-3">
+          <Button
+            onClick={captureAndAnalyze}
+            disabled={isAnalyzing}
+            className="flex-1 gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <ScanFace className="w-4 h-4" />
+                Analyze
+              </>
+            )}
+          </Button>
+          <Button
+            variant={autoCapture ? "destructive" : "outline"}
+            onClick={() => setAutoCapture(!autoCapture)}
+            className="gap-1.5 text-xs"
+          >
+            <RefreshCw className={`w-3 h-3 ${autoCapture ? 'animate-spin' : ''}`} />
+            {autoCapture ? 'Stop Auto' : 'Auto'}
+          </Button>
+        </div>
       )}
 
       {/* Results */}
