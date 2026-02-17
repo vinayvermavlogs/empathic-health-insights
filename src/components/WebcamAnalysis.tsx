@@ -94,19 +94,24 @@ export function WebcamAnalysis() {
     };
   }, []);
 
-  // Blink pattern detection — reset after 8 seconds of no new blinks
+  // Blink pattern detection — reset after 12 seconds of no new blinks
   useEffect(() => {
     if (blinkCount > 0 && blinkCount < 3) {
       if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
-      blinkTimeoutRef.current = setTimeout(() => setBlinkCount(0), 8000);
+      blinkTimeoutRef.current = setTimeout(() => {
+        console.log('[Blink] Reset blink count after timeout');
+        setBlinkCount(0);
+      }, 12000);
     }
     if (blinkCount >= 3) {
+      console.log('[Blink] 3 blinks detected — triggering banner!');
       setSignalMessage('👋 Good Morning, Ma\'am! Have a wonderful day!');
-      toast.success('Blink signal detected! 👋');
+      toast.success('Blink signal detected! 👋 Good Morning, Ma\'am!', { duration: 5000 });
+      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
       setTimeout(() => {
         setSignalMessage(null);
         setBlinkCount(0);
-      }, 6000);
+      }, 8000);
     }
     return () => {
       if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
@@ -147,9 +152,20 @@ export function WebcamAnalysis() {
       const result = data as FaceAnalysisResult;
       setLastResult(result);
 
-      // Track blinks
-      if (result.blinkDetection?.isBlinking) {
-        setBlinkCount(prev => prev + 1);
+      // Track blinks — count both isBlinking and partially-closed eyes
+      const blink = result.blinkDetection;
+      if (blink) {
+        const isBlink = blink.isBlinking || 
+          blink.eyeOpenness === 'closed' || 
+          blink.eyeOpenness === 'nearly-closed';
+        if (isBlink) {
+          console.log('[Blink] Blink detected! eyeOpenness:', blink.eyeOpenness, 'isBlinking:', blink.isBlinking);
+          setBlinkCount(prev => {
+            const next = prev + 1;
+            console.log('[Blink] Count:', next);
+            return next;
+          });
+        }
       }
 
       const emotionReadings: EmotionReading[] = result.emotions.map(e => ({
@@ -182,7 +198,7 @@ export function WebcamAnalysis() {
       if (autoCaptureRef.current && !isAnalyzing) {
         captureAndAnalyze();
       }
-    }, 8000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [isActive, autoCapture, captureAndAnalyze, isAnalyzing]);
 
