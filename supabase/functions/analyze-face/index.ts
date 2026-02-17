@@ -38,7 +38,7 @@ serve(async (req) => {
           messages: [
             {
               role: "system",
-              content: `You are an expert facial, skin, eye, and gesture analyzer with medical-grade observation skills. Analyze the person's face in the image and return structured data via the report_face_analysis tool.
+              content: `You are an expert facial, skin, eye, gesture, and sign language analyzer with medical-grade observation skills. Analyze the person in the image and return structured data via the report_face_analysis tool.
 
 Rules:
 - Return 3-6 emotions sorted by confidence descending
@@ -46,22 +46,36 @@ Rules:
 - Only use these emotion types: happiness, stress, anxiety, sadness, calmness, focus, fatigue, neutral
 - For skinAnalysis: examine skin tone, texture, hydration, acne, dark spots, wrinkles, pores, redness
 - For eyeAnalysis: examine eye redness, pupil dilation, dark circles, eye strain signs, moisture level, retina visibility
-- For blinkDetection: CRITICAL — carefully check if eyes are closed, nearly-closed, or half-open. If the eyes appear closed or mostly closed, set isBlinking=true. If eyes are fully open, set isBlinking=false. Be very sensitive to detect closed/squinting eyes.
-- For gestureSignals: This is CRITICAL — detect ALL visible hand gestures, finger positions, and body language signals:
-  * Hand signs: thumbs up, thumbs down, peace/V sign, OK sign, open palm (stop/hello), fist, pointing, waving, rock sign, heart shape with hands
-  * Sign language basics: common ASL letters if hand is positioned for them
-  * Head gestures: nodding, shaking, tilting left/right
-  * Facial gestures: winking, tongue out, blowing kiss, raised eyebrows
-  * Communication gestures: "come here" motion, "shush" finger on lips, salute, namaste/prayer hands
-  * If NO gestures are visible, return an empty array — do not fabricate gestures
-- Be accurate and honest about what you see`,
+- For blinkDetection: CRITICAL — carefully check if eyes are closed, nearly-closed, or half-open. If the eyes appear closed or mostly closed, set isBlinking=true. If eyes are fully open, set isBlinking=false.
+- For signLanguageLetter: VERY IMPORTANT — Look at the person's hands carefully. If they are forming an ASL (American Sign Language) hand sign, identify which letter (a-z) it represents. Use lowercase single letter. Common signs:
+  * A = closed fist with thumb on side
+  * B = flat open hand, fingers together pointing up, thumb tucked
+  * C = curved hand forming C shape
+  * D = index finger up, other fingers curled touching thumb
+  * E = fingers curled down, thumb tucked under
+  * F = OK sign with index and thumb touching, other 3 fingers up
+  * I = pinky finger up, rest closed
+  * K = index and middle finger up in V, thumb between them
+  * L = L shape with index finger and thumb
+  * O = fingers and thumb form circle
+  * R = crossed index and middle finger
+  * S = closed fist with thumb over fingers
+  * U = index and middle finger up together
+  * V = peace/victory sign
+  * W = three fingers up (index, middle, ring)
+  * X = index finger hooked/bent
+  * Y = thumb and pinky out (shaka/hang loose)
+  If NO hand sign is visible or hands are not forming a recognizable letter, set to null.
+  Set confidence 0-100 for how sure you are.
+- For gestureSignals: detect ALL visible hand gestures, body language, head movements. If none visible, return empty array.
+- Be accurate and honest — do NOT fabricate signs or gestures that aren't visible`,
             },
             {
               role: "user",
               content: [
                 {
                   type: "text",
-                  text: "Analyze this face comprehensively: emotions, skin health, eye/retina condition, blink state (are the eyes open or closed?), and any hand gestures or body language signals visible. Return via the tool.",
+                  text: "Analyze this image: emotions, skin, eye/retina, blink state, sign language hand letter (ASL a-z), and gestures. Return via the tool.",
                 },
                 {
                   type: "image_url",
@@ -149,8 +163,17 @@ Rules:
                         additionalProperties: false,
                       },
                     },
+                    signLanguageLetter: {
+                      type: "object",
+                      properties: {
+                        letter: { type: "string", description: "Single lowercase letter a-z or null if not detected" },
+                        confidence: { type: "number", description: "0-100 confidence" },
+                      },
+                      required: ["letter", "confidence"],
+                      additionalProperties: false,
+                    },
                   },
-                  required: ["emotions", "facialDetails", "overallMood", "skinAnalysis", "eyeAnalysis", "blinkDetection", "gestureSignals"],
+                  required: ["emotions", "facialDetails", "overallMood", "skinAnalysis", "eyeAnalysis", "blinkDetection", "gestureSignals", "signLanguageLetter"],
                   additionalProperties: false,
                 },
               },
