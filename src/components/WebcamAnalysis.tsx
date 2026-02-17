@@ -9,6 +9,8 @@ import { SkinAnalysisPanel } from '@/components/SkinAnalysisPanel';
 import { EyeAnalysisPanel } from '@/components/EyeAnalysisPanel';
 import { BlinkSignalBanner } from '@/components/BlinkSignalBanner';
 import { GestureSignalsPanel } from '@/components/GestureSignalsPanel';
+import { SignLanguagePanel, LETTER_MESSAGES } from '@/components/SignLanguagePanel';
+import type { SignLanguageDetection } from '@/components/SignLanguagePanel';
 
 export interface SkinAnalysis {
   condition: string;
@@ -47,6 +49,7 @@ interface FaceAnalysisResult {
   eyeAnalysis?: EyeAnalysis;
   blinkDetection?: BlinkDetection;
   gestureSignals?: GestureSignal[];
+  signLanguageLetter?: SignLanguageDetection;
 }
 
 export function WebcamAnalysis() {
@@ -61,6 +64,8 @@ export function WebcamAnalysis() {
   const [blinkCount, setBlinkCount] = useState(0);
   const [signalMessage, setSignalMessage] = useState<string | null>(null);
   const [autoCapture, setAutoCapture] = useState(false);
+  const [detectedLetters, setDetectedLetters] = useState<string[]>([]);
+  const [currentSignLetter, setCurrentSignLetter] = useState<SignLanguageDetection | null>(null);
   const autoCaptureRef = useRef(false);
   const blinkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -166,6 +171,20 @@ export function WebcamAnalysis() {
             return next;
           });
         }
+      }
+
+      // Track sign language letters
+      if (result.signLanguageLetter?.letter && result.signLanguageLetter.confidence > 30) {
+        const letter = result.signLanguageLetter.letter.toLowerCase();
+        console.log('[SignLang] Detected letter:', letter, 'confidence:', result.signLanguageLetter.confidence);
+        setCurrentSignLetter(result.signLanguageLetter);
+        setDetectedLetters(prev => [...prev.slice(-19), letter]);
+        const msg = LETTER_MESSAGES[letter];
+        if (msg) {
+          toast.success(`Sign "${letter.toUpperCase()}" → ${msg}`, { duration: 4000 });
+        }
+      } else {
+        setCurrentSignLetter(null);
       }
 
       const emotionReadings: EmotionReading[] = result.emotions.map(e => ({
@@ -339,6 +358,9 @@ export function WebcamAnalysis() {
             {lastResult.eyeAnalysis && (
               <EyeAnalysisPanel eye={lastResult.eyeAnalysis} />
             )}
+
+            {/* Sign Language Detection */}
+            <SignLanguagePanel detection={currentSignLetter} detectedLetters={detectedLetters} />
 
             {/* Gesture Signals */}
             {lastResult.gestureSignals && lastResult.gestureSignals.length > 0 && (
