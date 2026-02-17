@@ -38,7 +38,7 @@ serve(async (req) => {
           messages: [
             {
               role: "system",
-              content: `You are an expert facial, skin, and eye analyzer with medical-grade observation skills. Analyze the person's face in the image and return structured data via the report_face_analysis tool.
+              content: `You are an expert facial, skin, eye, and gesture analyzer with medical-grade observation skills. Analyze the person's face in the image and return structured data via the report_face_analysis tool.
 
 Rules:
 - Return 3-6 emotions sorted by confidence descending
@@ -46,8 +46,14 @@ Rules:
 - Only use these emotion types: happiness, stress, anxiety, sadness, calmness, focus, fatigue, neutral
 - For skinAnalysis: examine skin tone, texture, hydration, acne, dark spots, wrinkles, pores, redness
 - For eyeAnalysis: examine eye redness, pupil dilation, dark circles, eye strain signs, moisture level, retina visibility
-- For blinkDetection: estimate if eyes appear closed/half-closed (blinking) or open. Set isBlinking=true if eyes appear closed or nearly closed
-- For gestureSignals: detect any hand gestures near face, head tilts, nods, or facial gestures that could represent sign language or communication signals
+- For blinkDetection: CRITICAL — carefully check if eyes are closed, nearly-closed, or half-open. If the eyes appear closed or mostly closed, set isBlinking=true. If eyes are fully open, set isBlinking=false. Be very sensitive to detect closed/squinting eyes.
+- For gestureSignals: This is CRITICAL — detect ALL visible hand gestures, finger positions, and body language signals:
+  * Hand signs: thumbs up, thumbs down, peace/V sign, OK sign, open palm (stop/hello), fist, pointing, waving, rock sign, heart shape with hands
+  * Sign language basics: common ASL letters if hand is positioned for them
+  * Head gestures: nodding, shaking, tilting left/right
+  * Facial gestures: winking, tongue out, blowing kiss, raised eyebrows
+  * Communication gestures: "come here" motion, "shush" finger on lips, salute, namaste/prayer hands
+  * If NO gestures are visible, return an empty array — do not fabricate gestures
 - Be accurate and honest about what you see`,
             },
             {
@@ -55,7 +61,7 @@ Rules:
               content: [
                 {
                   type: "text",
-                  text: "Analyze this face comprehensively: emotions, skin health, eye/retina condition, blink state, and any gesture signals. Return via the tool.",
+                  text: "Analyze this face comprehensively: emotions, skin health, eye/retina condition, blink state (are the eyes open or closed?), and any hand gestures or body language signals visible. Return via the tool.",
                 },
                 {
                   type: "image_url",
