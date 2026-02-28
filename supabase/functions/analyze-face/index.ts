@@ -40,6 +40,8 @@ serve(async (req) => {
               role: "system",
               content: `You are an expert facial, skin, eye, gesture, and sign language analyzer with medical-grade observation skills. Analyze the person in the image and return structured data via the report_face_analysis tool.
 
+For boundingBoxes: Return approximate bounding box regions for detected face and hands as normalized coordinates (0.0 to 1.0 relative to image dimensions). Each box needs: label (e.g. "Face", "Left Hand", "Right Hand"), x, y (top-left corner), width, height (all 0-1 normalized), color (hex like "#00ff00" for face, "#ff00ff" for hands, "#00ffff" for gestures), and confidence (0-100). ALWAYS return at least a face bounding box if a face is visible.
+
 Rules:
 - Return 3-6 emotions sorted by confidence descending
 - Confidences must sum to approximately 100
@@ -186,8 +188,25 @@ Rules:
                       required: ["letter", "confidence"],
                       additionalProperties: false,
                     },
+                    boundingBoxes: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          label: { type: "string", description: "e.g. Face, Left Hand, Right Hand" },
+                          x: { type: "number", description: "normalized 0-1 top-left x" },
+                          y: { type: "number", description: "normalized 0-1 top-left y" },
+                          width: { type: "number", description: "normalized 0-1 width" },
+                          height: { type: "number", description: "normalized 0-1 height" },
+                          color: { type: "string", description: "hex color e.g. #00ff00" },
+                          confidence: { type: "number" },
+                        },
+                        required: ["label", "x", "y", "width", "height", "color", "confidence"],
+                        additionalProperties: false,
+                      },
+                    },
                   },
-                  required: ["emotions", "facialDetails", "overallMood", "skinAnalysis", "eyeAnalysis", "blinkDetection", "gestureSignals", "signLanguageLetter"],
+                  required: ["emotions", "facialDetails", "overallMood", "skinAnalysis", "eyeAnalysis", "blinkDetection", "gestureSignals", "signLanguageLetter", "boundingBoxes"],
                   additionalProperties: false,
                 },
               },

@@ -41,6 +41,16 @@ export interface GestureSignal {
   confidence: number;
 }
 
+export interface BoundingBox {
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+  confidence: number;
+}
+
 interface FaceAnalysisResult {
   emotions: { emotion: EmotionType; confidence: number }[];
   facialDetails: string;
@@ -50,11 +60,13 @@ interface FaceAnalysisResult {
   blinkDetection?: BlinkDetection;
   gestureSignals?: GestureSignal[];
   signLanguageLetter?: SignLanguageDetection;
+  boundingBoxes?: BoundingBox[];
 }
 
 export function WebcamAnalysis() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const overlayRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [isActive, setIsActive] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -91,6 +103,54 @@ export function WebcamAnalysis() {
     setIsActive(false);
     setBlinkCount(0);
     setSignalMessage(null);
+  }, []);
+
+  const drawBoundingBoxes = useCallback((boxes: BoundingBox[]) => {
+    const overlay = overlayRef.current;
+    const video = videoRef.current;
+    if (!overlay || !video) return;
+    
+    overlay.width = video.videoWidth;
+    overlay.height = video.videoHeight;
+    const ctx = overlay.getContext('2d');
+    if (!ctx) return;
+    
+    ctx.clearRect(0, 0, overlay.width, overlay.height);
+    
+    boxes.forEach(box => {
+      const x = box.x * overlay.width;
+      const y = box.y * overlay.height;
+      const w = box.width * overlay.width;
+      const h = box.height * overlay.height;
+      
+      // Draw box
+      ctx.strokeStyle = box.color || '#00ff00';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x, y, w, h);
+      
+      // Corner accents
+      const cornerLen = Math.min(w, h) * 0.2;
+      ctx.lineWidth = 4;
+      // Top-left
+      ctx.beginPath(); ctx.moveTo(x, y + cornerLen); ctx.lineTo(x, y); ctx.lineTo(x + cornerLen, y); ctx.stroke();
+      // Top-right
+      ctx.beginPath(); ctx.moveTo(x + w - cornerLen, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + cornerLen); ctx.stroke();
+      // Bottom-left
+      ctx.beginPath(); ctx.moveTo(x, y + h - cornerLen); ctx.lineTo(x, y + h); ctx.lineTo(x + cornerLen, y + h); ctx.stroke();
+      // Bottom-right
+      ctx.beginPath(); ctx.moveTo(x + w - cornerLen, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - cornerLen); ctx.stroke();
+      
+      // Label background
+      const label = `${box.label} ${(box.confidence / 100).toFixed(1)}`;
+      ctx.font = 'bold 14px monospace';
+      const textW = ctx.measureText(label).width + 8;
+      ctx.fillStyle = box.color || '#00ff00';
+      ctx.fillRect(x, y - 22, textW, 20);
+      
+      // Label text
+      ctx.fillStyle = '#000000';
+      ctx.fillText(label, x + 4, y - 7);
+    });
   }, []);
 
   useEffect(() => {
@@ -156,6 +216,11 @@ export function WebcamAnalysis() {
 
       const result = data as FaceAnalysisResult;
       setLastResult(result);
+
+      // Draw bounding boxes on overlay
+      if (result.boundingBoxes && result.boundingBoxes.length > 0) {
+        drawBoundingBoxes(result.boundingBoxes);
+      }
 
       // Track blinks — count both isBlinking and partially-closed eyes
       const blink = result.blinkDetection;
@@ -273,6 +338,11 @@ export function WebcamAnalysis() {
           </div>
         )}
         <canvas ref={canvasRef} className="hidden" />
+        <canvas
+          ref={overlayRef}
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          style={{ zIndex: 10 }}
+        />
       </div>
 
       {/* Analyze Buttons */}
