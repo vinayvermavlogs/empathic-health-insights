@@ -67,7 +67,21 @@ Rules:
   * Y = thumb and pinky out (shaka/hang loose)
   If NO hand sign is visible or hands are not forming a recognizable letter, set to null.
   Set confidence 0-100 for how sure you are.
-- For gestureSignals: detect ALL visible hand gestures, body language, head movements. If none visible, return empty array.
+- For gestureSignals: detect ALL visible hand gestures, body language, head movements. Key gestures to detect:
+  * Shaking hand left-to-right / waving = "Hello / Greeting"
+  * Thumbs up = "Approval / Yes"
+  * Thumbs down = "Disapproval / No"
+  * Peace / Victory sign (two fingers) = "Peace / Victory"
+  * OK sign (thumb + index circle) = "OK / Agreement"
+  * Open palm facing forward = "Stop / Wait"
+  * Closed fist = "Strength / Solidarity"
+  * Pointing index finger = "Directing attention"
+  * Heart shape with both hands = "Love / Affection"
+  * Hand on chin = "Thinking / Contemplating"
+  * Crossed arms = "Defensive / Closed off"
+  * Head nodding = "Agreement"
+  * Head shaking = "Disagreement"
+  If none visible, return empty array.
 - Be accurate and honest — do NOT fabricate signs or gestures that aren't visible`,
             },
             {
