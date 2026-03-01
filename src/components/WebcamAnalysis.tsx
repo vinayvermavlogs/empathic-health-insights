@@ -204,13 +204,15 @@ export function WebcamAnalysis() {
       });
 
       if (error) {
-        toast.error('Analysis failed. Please try again.');
-        console.error(error);
+        console.error('Analysis error:', error);
+        // Don't crash — just show a warning and let user retry
+        toast.warning('Analysis temporarily unavailable. Retrying automatically...', { duration: 3000 });
         return;
       }
 
       if (data?.error) {
-        toast.error(data.error);
+        console.warn('Analysis returned error:', data.error);
+        toast.warning(data.error, { duration: 3000 });
         return;
       }
 
@@ -264,8 +266,9 @@ export function WebcamAnalysis() {
       const dominant = result.emotions[0]?.emotion ?? 'neutral';
       setRecommendations(getRecommendations(dominant, health));
     } catch (err) {
-      console.error(err);
-      toast.error('Failed to analyze face.');
+      console.error('Analysis catch:', err);
+      // Graceful — don't crash, just warn
+      toast.warning('Detection hiccup — will retry.', { duration: 2000 });
     } finally {
       setIsAnalyzing(false);
     }

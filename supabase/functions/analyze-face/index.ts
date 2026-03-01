@@ -25,20 +25,12 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            {
-              role: "system",
-              content: `You are an expert facial, skin, eye, gesture, and sign language analyzer with medical-grade observation skills. Analyze the person in the image and return structured data via the report_face_analysis tool.
+    const requestBody = JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert facial, skin, eye, gesture, and sign language analyzer with medical-grade observation skills. Analyze the person in the image and return structured data via the report_face_analysis tool.
 
 For boundingBoxes: Return approximate bounding box regions for detected face and hands as normalized coordinates (0.0 to 1.0 relative to image dimensions). Each box needs: label (e.g. "Face", "Left Hand", "Right Hand"), x, y (top-left corner), width, height (all 0-1 normalized), color (hex like "#00ff00" for face, "#ff00ff" for hands, "#00ffff" for gestures), and confidence (0-100). ALWAYS return at least a face bounding box if a face is visible.
 
@@ -85,154 +77,169 @@ Rules:
   * Head shaking = "Disagreement"
   If none visible, return empty array.
 - Be accurate and honest — do NOT fabricate signs or gestures that aren't visible`,
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Analyze this image: emotions, skin, eye/retina, blink state, sign language hand letter (ASL a-z), and gestures. Return via the tool.",
             },
             {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "Analyze this image: emotions, skin, eye/retina, blink state, sign language hand letter (ASL a-z), and gestures. Return via the tool.",
-                },
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:image/jpeg;base64,${imageBase64}`,
-                  },
-                },
-              ],
-            },
-          ],
-          tools: [
-            {
-              type: "function",
-              function: {
-                name: "report_face_analysis",
-                description: "Report comprehensive face analysis results",
-                parameters: {
-                  type: "object",
-                  properties: {
-                    emotions: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          emotion: {
-                            type: "string",
-                            enum: ["happiness", "stress", "anxiety", "sadness", "calmness", "focus", "fatigue", "neutral"],
-                          },
-                          confidence: { type: "number" },
-                        },
-                        required: ["emotion", "confidence"],
-                        additionalProperties: false,
-                      },
-                    },
-                    facialDetails: { type: "string" },
-                    overallMood: { type: "string" },
-                    skinAnalysis: {
-                      type: "object",
-                      properties: {
-                        condition: { type: "string", enum: ["excellent", "good", "fair", "poor"] },
-                        hydration: { type: "string", enum: ["well-hydrated", "normal", "dry", "very-dry"] },
-                        concerns: {
-                          type: "array",
-                          items: { type: "string" },
-                        },
-                        skinTone: { type: "string" },
-                        overallScore: { type: "number" },
-                      },
-                      required: ["condition", "hydration", "concerns", "skinTone", "overallScore"],
-                      additionalProperties: false,
-                    },
-                    eyeAnalysis: {
-                      type: "object",
-                      properties: {
-                        strain: { type: "string", enum: ["none", "mild", "moderate", "severe"] },
-                        redness: { type: "string", enum: ["none", "mild", "moderate", "severe"] },
-                        darkCircles: { type: "string", enum: ["none", "mild", "moderate", "severe"] },
-                        moisture: { type: "string", enum: ["normal", "dry", "watery"] },
-                        pupilDilation: { type: "string", enum: ["normal", "dilated", "constricted"] },
-                        retinaObservation: { type: "string" },
-                        overallHealth: { type: "string", enum: ["healthy", "mild-concern", "needs-attention"] },
-                      },
-                      required: ["strain", "redness", "darkCircles", "moisture", "pupilDilation", "retinaObservation", "overallHealth"],
-                      additionalProperties: false,
-                    },
-                    blinkDetection: {
-                      type: "object",
-                      properties: {
-                        isBlinking: { type: "boolean" },
-                        eyeOpenness: { type: "string", enum: ["fully-open", "half-open", "nearly-closed", "closed"] },
-                      },
-                      required: ["isBlinking", "eyeOpenness"],
-                      additionalProperties: false,
-                    },
-                    gestureSignals: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          gesture: { type: "string" },
-                          meaning: { type: "string" },
-                          confidence: { type: "number" },
-                        },
-                        required: ["gesture", "meaning", "confidence"],
-                        additionalProperties: false,
-                      },
-                    },
-                    signLanguageLetter: {
-                      type: "object",
-                      properties: {
-                        letter: { type: "string", description: "Single lowercase letter a-z or null if not detected" },
-                        confidence: { type: "number", description: "0-100 confidence" },
-                      },
-                      required: ["letter", "confidence"],
-                      additionalProperties: false,
-                    },
-                    boundingBoxes: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          label: { type: "string", description: "e.g. Face, Left Hand, Right Hand" },
-                          x: { type: "number", description: "normalized 0-1 top-left x" },
-                          y: { type: "number", description: "normalized 0-1 top-left y" },
-                          width: { type: "number", description: "normalized 0-1 width" },
-                          height: { type: "number", description: "normalized 0-1 height" },
-                          color: { type: "string", description: "hex color e.g. #00ff00" },
-                          confidence: { type: "number" },
-                        },
-                        required: ["label", "x", "y", "width", "height", "color", "confidence"],
-                        additionalProperties: false,
-                      },
-                    },
-                  },
-                  required: ["emotions", "facialDetails", "overallMood", "skinAnalysis", "eyeAnalysis", "blinkDetection", "gestureSignals", "signLanguageLetter", "boundingBoxes"],
-                  additionalProperties: false,
-                },
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${imageBase64}`,
               },
             },
           ],
-          tool_choice: { type: "function", function: { name: "report_face_analysis" } },
-        }),
-      }
-    );
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "report_face_analysis",
+            description: "Report comprehensive face analysis results",
+            parameters: {
+              type: "object",
+              properties: {
+                emotions: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      emotion: {
+                        type: "string",
+                        enum: ["happiness", "stress", "anxiety", "sadness", "calmness", "focus", "fatigue", "neutral"],
+                      },
+                      confidence: { type: "number" },
+                    },
+                    required: ["emotion", "confidence"],
+                    additionalProperties: false,
+                  },
+                },
+                facialDetails: { type: "string" },
+                overallMood: { type: "string" },
+                skinAnalysis: {
+                  type: "object",
+                  properties: {
+                    condition: { type: "string", enum: ["excellent", "good", "fair", "poor"] },
+                    hydration: { type: "string", enum: ["well-hydrated", "normal", "dry", "very-dry"] },
+                    concerns: { type: "array", items: { type: "string" } },
+                    skinTone: { type: "string" },
+                    overallScore: { type: "number" },
+                  },
+                  required: ["condition", "hydration", "concerns", "skinTone", "overallScore"],
+                  additionalProperties: false,
+                },
+                eyeAnalysis: {
+                  type: "object",
+                  properties: {
+                    strain: { type: "string", enum: ["none", "mild", "moderate", "severe"] },
+                    redness: { type: "string", enum: ["none", "mild", "moderate", "severe"] },
+                    darkCircles: { type: "string", enum: ["none", "mild", "moderate", "severe"] },
+                    moisture: { type: "string", enum: ["normal", "dry", "watery"] },
+                    pupilDilation: { type: "string", enum: ["normal", "dilated", "constricted"] },
+                    retinaObservation: { type: "string" },
+                    overallHealth: { type: "string", enum: ["healthy", "mild-concern", "needs-attention"] },
+                  },
+                  required: ["strain", "redness", "darkCircles", "moisture", "pupilDilation", "retinaObservation", "overallHealth"],
+                  additionalProperties: false,
+                },
+                blinkDetection: {
+                  type: "object",
+                  properties: {
+                    isBlinking: { type: "boolean" },
+                    eyeOpenness: { type: "string", enum: ["fully-open", "half-open", "nearly-closed", "closed"] },
+                  },
+                  required: ["isBlinking", "eyeOpenness"],
+                  additionalProperties: false,
+                },
+                gestureSignals: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      gesture: { type: "string" },
+                      meaning: { type: "string" },
+                      confidence: { type: "number" },
+                    },
+                    required: ["gesture", "meaning", "confidence"],
+                    additionalProperties: false,
+                  },
+                },
+                signLanguageLetter: {
+                  type: "object",
+                  properties: {
+                    letter: { type: "string", description: "Single lowercase letter a-z or null if not detected" },
+                    confidence: { type: "number", description: "0-100 confidence" },
+                  },
+                  required: ["letter", "confidence"],
+                  additionalProperties: false,
+                },
+                boundingBoxes: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      label: { type: "string", description: "e.g. Face, Left Hand, Right Hand" },
+                      x: { type: "number", description: "normalized 0-1 top-left x" },
+                      y: { type: "number", description: "normalized 0-1 top-left y" },
+                      width: { type: "number", description: "normalized 0-1 width" },
+                      height: { type: "number", description: "normalized 0-1 height" },
+                      color: { type: "string", description: "hex color e.g. #00ff00" },
+                      confidence: { type: "number" },
+                    },
+                    required: ["label", "x", "y", "width", "height", "color", "confidence"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ["emotions", "facialDetails", "overallMood", "skinAnalysis", "eyeAnalysis", "blinkDetection", "gestureSignals", "signLanguageLetter", "boundingBoxes"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "report_face_analysis" } },
+    });
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please wait a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    // Retry logic with exponential backoff for rate limits
+    let response: Response | null = null;
+    const maxRetries = 4;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      response = await fetch(
+        "https://ai.gateway.lovable.dev/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: requestBody,
+        }
+      );
+
+      if (response.status === 429 && attempt < maxRetries) {
+        // Wait with exponential backoff: 2s, 4s, 8s, 16s
+        const waitMs = Math.pow(2, attempt + 1) * 1000;
+        console.log(`Rate limited (attempt ${attempt + 1}/${maxRetries}), retrying in ${waitMs}ms...`);
+        await new Promise(r => setTimeout(r, waitMs));
+        continue;
       }
-      if (response.status === 402) {
+      break;
+    }
+
+    if (!response || !response.ok) {
+      if (response?.status === 402) {
         return new Response(
           JSON.stringify({ error: "AI credits depleted. Please add funds." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      const text = await response.text();
-      console.error("AI gateway error:", response.status, text);
-      throw new Error(`AI gateway error: ${response.status}`);
+      const text = response ? await response.text() : "No response";
+      console.error("AI gateway error:", response?.status, text);
+      throw new Error(`AI gateway error: ${response?.status}`);
     }
 
     const data = await response.json();
