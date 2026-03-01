@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { EmotionReading, EmotionType, getEmotionColor, emotionLabels, mapEmotionsToHealth, getRecommendations } from '@/lib/healthMapping';
 import { toast } from 'sonner';
 import { SkinAnalysisPanel } from '@/components/SkinAnalysisPanel';
+import { MoodEmojiReaction } from '@/components/MoodEmojiReaction';
 import { EyeAnalysisPanel } from '@/components/EyeAnalysisPanel';
 import { BlinkSignalBanner } from '@/components/BlinkSignalBanner';
 import { GestureSignalsPanel } from '@/components/GestureSignalsPanel';
@@ -389,6 +390,14 @@ export function WebcamAnalysis() {
             exit={{ opacity: 0 }}
             className="space-y-3"
           >
+            {/* Emoji Mood Reaction */}
+            <div className="flex justify-center py-3">
+              <MoodEmojiReaction
+                mood={lastResult.emotions[0]?.emotion ?? null}
+                confidence={lastResult.emotions[0]?.confidence}
+              />
+            </div>
+
             {/* Overall Mood */}
             <div className="text-center py-2">
               <span className="text-xs text-muted-foreground uppercase tracking-wider">Overall Mood</span>
