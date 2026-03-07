@@ -14,6 +14,7 @@ import { DetectionLog } from '@/components/DetectionLog';
 import { ReportExport } from '@/components/ReportExport';
 import { WebcamAnalysis } from '@/components/WebcamAnalysis';
 import { AIInsightsPanel } from '@/components/AIInsightsPanel';
+import { LiveSubtitles } from '@/components/LiveSubtitles';
 
 const Index = () => {
   const { currentSnapshot, history, isLive, setIsLive } = useEmotionSimulator(2000);
@@ -138,6 +139,7 @@ const Index = () => {
           {/* Left Column - Webcam */}
           <div className="md:col-span-2 lg:col-span-4 space-y-4 order-1">
             <WebcamAnalysis />
+            <LiveSubtitles />
           </div>
 
           {/* Center Column - Charts & AI */}
