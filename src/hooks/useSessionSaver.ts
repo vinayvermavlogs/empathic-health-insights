@@ -23,14 +23,14 @@ export function useSessionSaver() {
     const cortisolScore = 100 - h.cortisolIndex;
     const wellness = Math.round((spo2Score + hrvScore + hrScore + cortisolScore) / 4);
 
-    const { error } = await supabase.from('session_history').insert({
+    const { error } = await supabase.from('session_history').insert([{
       user_id: session.user.id,
       dominant_emotion: latest.dominantEmotion,
-      emotions: latest.emotions.map(e => ({ emotion: e.emotion, confidence: e.confidence })),
-      health_metrics: latest.health,
+      emotions: latest.emotions.map(e => ({ emotion: e.emotion, confidence: e.confidence })) as any,
+      health_metrics: latest.health as any,
       wellness_score: wellness,
       session_duration_seconds: durationSeconds,
-    });
+    }]);
 
     if (error) {
       toast({ title: 'Error saving session', description: error.message, variant: 'destructive' });
