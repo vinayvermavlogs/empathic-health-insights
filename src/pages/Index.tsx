@@ -22,7 +22,17 @@ import { useNavigate } from 'react-router-dom';
 const Index = () => {
   const { currentSnapshot, history, isLive, setIsLive } = useEmotionSimulator(2000);
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const { saveSession } = useSessionSaver();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const sessionStartRef = useRef(Date.now());
+
+  const handleSaveSession = () => {
+    const durationSeconds = Math.round((Date.now() - sessionStartRef.current) / 1000);
+    saveSession(history, durationSeconds);
+    sessionStartRef.current = Date.now();
+  };
 
   if (!currentSnapshot) {
     return (
