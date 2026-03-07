@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Pause, Play, Radio, Sun, Moon, Menu, X } from 'lucide-react';
+import { Activity, Pause, Play, Radio, Sun, Moon, Menu, X, User, Save, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEmotionSimulator } from '@/hooks/useEmotionSimulator';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
+import { useSessionSaver } from '@/hooks/useSessionSaver';
 import { getRecommendations } from '@/lib/healthMapping';
 import { EmotionPanel } from '@/components/EmotionPanel';
 import { HealthMetricsPanel } from '@/components/HealthMetricsPanel';
@@ -15,6 +17,7 @@ import { ReportExport } from '@/components/ReportExport';
 import { WebcamAnalysis } from '@/components/WebcamAnalysis';
 import { AIInsightsPanel } from '@/components/AIInsightsPanel';
 import { LiveSubtitles } from '@/components/LiveSubtitles';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const { currentSnapshot, history, isLive, setIsLive } = useEmotionSimulator(2000);
