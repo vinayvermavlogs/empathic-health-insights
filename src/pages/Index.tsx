@@ -14,6 +14,7 @@ import { DetectionLog } from '@/components/DetectionLog';
 import { ReportExport } from '@/components/ReportExport';
 import { WebcamAnalysis } from '@/components/WebcamAnalysis';
 import { AIInsightsPanel } from '@/components/AIInsightsPanel';
+import { LiveSubtitles } from '@/components/LiveSubtitles';
 
 const Index = () => {
   const { currentSnapshot, history, isLive, setIsLive } = useEmotionSimulator(2000);
