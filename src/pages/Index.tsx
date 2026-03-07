@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Pause, Play, Radio, Sun, Moon, Menu, X } from 'lucide-react';
+import { Activity, Pause, Play, Radio, Sun, Moon, Menu, X, User, Save, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEmotionSimulator } from '@/hooks/useEmotionSimulator';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
+import { useSessionSaver } from '@/hooks/useSessionSaver';
 import { getRecommendations } from '@/lib/healthMapping';
 import { EmotionPanel } from '@/components/EmotionPanel';
 import { HealthMetricsPanel } from '@/components/HealthMetricsPanel';
@@ -15,11 +17,22 @@ import { ReportExport } from '@/components/ReportExport';
 import { WebcamAnalysis } from '@/components/WebcamAnalysis';
 import { AIInsightsPanel } from '@/components/AIInsightsPanel';
 import { LiveSubtitles } from '@/components/LiveSubtitles';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const { currentSnapshot, history, isLive, setIsLive } = useEmotionSimulator(2000);
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const { saveSession } = useSessionSaver();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const sessionStartRef = useRef(Date.now());
+
+  const handleSaveSession = () => {
+    const durationSeconds = Math.round((Date.now() - sessionStartRef.current) / 1000);
+    saveSession(history, durationSeconds);
+    sessionStartRef.current = Date.now();
+  };
 
   if (!currentSnapshot) {
     return (
@@ -73,6 +86,20 @@ const Index = () => {
               <span className="hidden md:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
             </Button>
             <ReportExport history={history} sessionId="SESSION-001" />
+            {user ? (
+              <>
+                <Button variant="outline" size="sm" onClick={handleSaveSession} className="gap-1.5 text-xs border-border">
+                  <Save className="w-3 h-3" /> <span className="hidden md:inline">Save</span>
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => navigate('/profile')} className="gap-1.5 text-xs border-border">
+                  <User className="w-3 h-3" /> <span className="hidden md:inline">Profile</span>
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="gap-1.5 text-xs border-border">
+                <LogIn className="w-3 h-3" /> <span className="hidden md:inline">Sign In</span>
+              </Button>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -119,8 +146,24 @@ const Index = () => {
                     {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
                   </Button>
                 </div>
-                <div>
-                  <ReportExport history={history} sessionId="SESSION-001" />
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex-1">
+                    <ReportExport history={history} sessionId="SESSION-001" />
+                  </div>
+                  {user ? (
+                    <>
+                      <Button variant="outline" size="sm" onClick={() => { handleSaveSession(); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                        <Save className="w-3 h-3" /> Save Session
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                        <User className="w-3 h-3" /> Profile
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => { navigate('/auth'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                      <LogIn className="w-3 h-3" /> Sign In
+                    </Button>
+                  )}
                 </div>
               </div>
             </motion.div>
