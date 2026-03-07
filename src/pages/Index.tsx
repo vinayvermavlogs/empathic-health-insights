@@ -86,6 +86,20 @@ const Index = () => {
               <span className="hidden md:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
             </Button>
             <ReportExport history={history} sessionId="SESSION-001" />
+            {user ? (
+              <>
+                <Button variant="outline" size="sm" onClick={handleSaveSession} className="gap-1.5 text-xs border-border">
+                  <Save className="w-3 h-3" /> <span className="hidden md:inline">Save</span>
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => navigate('/profile')} className="gap-1.5 text-xs border-border">
+                  <User className="w-3 h-3" /> <span className="hidden md:inline">Profile</span>
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="gap-1.5 text-xs border-border">
+                <LogIn className="w-3 h-3" /> <span className="hidden md:inline">Sign In</span>
+              </Button>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -132,8 +146,24 @@ const Index = () => {
                     {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
                   </Button>
                 </div>
-                <div>
-                  <ReportExport history={history} sessionId="SESSION-001" />
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex-1">
+                    <ReportExport history={history} sessionId="SESSION-001" />
+                  </div>
+                  {user ? (
+                    <>
+                      <Button variant="outline" size="sm" onClick={() => { handleSaveSession(); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                        <Save className="w-3 h-3" /> Save Session
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                        <User className="w-3 h-3" /> Profile
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => { navigate('/auth'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                      <LogIn className="w-3 h-3" /> Sign In
+                    </Button>
+                  )}
                 </div>
               </div>
             </motion.div>
