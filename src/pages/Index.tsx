@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Pause, Play, Radio, Sun, Moon, Menu, X, User, Save, LogIn } from 'lucide-react';
+import { Activity, Pause, Play, Radio, Sun, Moon, Menu, X, User, Save, LogIn, Bot, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEmotionSimulator } from '@/hooks/useEmotionSimulator';
 import { useTheme } from '@/hooks/useTheme';
@@ -17,6 +17,7 @@ import { ReportExport } from '@/components/ReportExport';
 import { WebcamAnalysis } from '@/components/WebcamAnalysis';
 import { AIInsightsPanel } from '@/components/AIInsightsPanel';
 import { LiveSubtitles } from '@/components/LiveSubtitles';
+import { AISessionSummary } from '@/components/AISessionSummary';
 import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
@@ -86,6 +87,12 @@ const Index = () => {
               <span className="hidden md:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
             </Button>
             <ReportExport history={history} sessionId="SESSION-001" />
+            <Button variant="outline" size="sm" onClick={() => navigate('/ai-chat')} className="gap-1.5 text-xs border-border">
+              <Bot className="w-3 h-3" /> <span className="hidden md:inline">AI Chat</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/architecture')} className="gap-1.5 text-xs border-border">
+              <Layers className="w-3 h-3" /> <span className="hidden md:inline">Arch</span>
+            </Button>
             {user ? (
               <>
                 <Button variant="outline" size="sm" onClick={handleSaveSession} className="gap-1.5 text-xs border-border">
@@ -150,6 +157,14 @@ const Index = () => {
                   <div className="flex-1">
                     <ReportExport history={history} sessionId="SESSION-001" />
                   </div>
+                  <Button variant="outline" size="sm" onClick={() => { navigate('/ai-chat'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                    <Bot className="w-3 h-3" /> AI Chat
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => { navigate('/architecture'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                    <Layers className="w-3 h-3" /> Architecture
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
                   {user ? (
                     <>
                       <Button variant="outline" size="sm" onClick={() => { handleSaveSession(); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
@@ -188,6 +203,8 @@ const Index = () => {
           {/* Center Column - Charts & AI */}
           <div className="md:col-span-1 lg:col-span-5 space-y-4 order-3 lg:order-2">
             <AIInsightsPanel history={history} />
+            <AISessionSummary history={history} mode="session-summary" />
+            <AISessionSummary history={history} mode="emotion-predict" />
             <HealthMetricsPanel metrics={currentSnapshot.health} />
             <EmotionTimeline history={history} />
             <HealthTimeline history={history} />
