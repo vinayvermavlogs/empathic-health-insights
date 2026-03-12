@@ -157,6 +157,14 @@ const Index = () => {
                   <div className="flex-1">
                     <ReportExport history={history} sessionId="SESSION-001" />
                   </div>
+                  <Button variant="outline" size="sm" onClick={() => { navigate('/ai-chat'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                    <Bot className="w-3 h-3" /> AI Chat
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => { navigate('/architecture'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                    <Layers className="w-3 h-3" /> Architecture
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
                   {user ? (
                     <>
                       <Button variant="outline" size="sm" onClick={() => { handleSaveSession(); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
