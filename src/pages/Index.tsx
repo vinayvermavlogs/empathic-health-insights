@@ -195,6 +195,8 @@ const Index = () => {
           {/* Center Column - Charts & AI */}
           <div className="md:col-span-1 lg:col-span-5 space-y-4 order-3 lg:order-2">
             <AIInsightsPanel history={history} />
+            <AISessionSummary history={history} mode="session-summary" />
+            <AISessionSummary history={history} mode="emotion-predict" />
             <HealthMetricsPanel metrics={currentSnapshot.health} />
             <EmotionTimeline history={history} />
             <HealthTimeline history={history} />
