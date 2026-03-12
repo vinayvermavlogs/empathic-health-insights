@@ -87,6 +87,12 @@ const Index = () => {
               <span className="hidden md:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
             </Button>
             <ReportExport history={history} sessionId="SESSION-001" />
+            <Button variant="outline" size="sm" onClick={() => navigate('/ai-chat')} className="gap-1.5 text-xs border-border">
+              <Bot className="w-3 h-3" /> <span className="hidden md:inline">AI Chat</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/architecture')} className="gap-1.5 text-xs border-border">
+              <Layers className="w-3 h-3" /> <span className="hidden md:inline">Arch</span>
+            </Button>
             {user ? (
               <>
                 <Button variant="outline" size="sm" onClick={handleSaveSession} className="gap-1.5 text-xs border-border">
