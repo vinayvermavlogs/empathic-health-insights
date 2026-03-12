@@ -17,6 +17,7 @@ import { ReportExport } from '@/components/ReportExport';
 import { WebcamAnalysis } from '@/components/WebcamAnalysis';
 import { AIInsightsPanel } from '@/components/AIInsightsPanel';
 import { LiveSubtitles } from '@/components/LiveSubtitles';
+import { AISessionSummary } from '@/components/AISessionSummary';
 import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
