@@ -317,7 +317,7 @@ export function WebcamAnalysis() {
       </div>
 
       {/* Video Feed - Larger */}
-      <div className="relative rounded-2xl overflow-hidden bg-secondary mb-3 aspect-[4/3]">
+      <div className="relative rounded-2xl overflow-hidden bg-secondary mb-3 aspect-[3/2.5]">
         <video
           ref={videoRef}
           autoPlay
