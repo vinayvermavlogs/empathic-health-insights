@@ -400,7 +400,7 @@ export function ReportExport({ history, sessionId }: ReportExportProps) {
       doc.text(`Generated: ${now.toISOString()}`, 196, 291, { align: 'right' });
     }
 
-    doc.save(`NeuroSense-Health-Report-${now.toISOString().slice(0, 10)}.pdf`);
+    doc.save(`EmotionDetector-Health-Report-${now.toISOString().slice(0, 10)}.pdf`);
   };
 
   return (
