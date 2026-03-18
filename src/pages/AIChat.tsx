@@ -131,7 +131,7 @@ const AIChat = () => {
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
                 <Brain className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-xl font-bold text-foreground">NeuroSense AI Assistant</h2>
+              <h2 className="text-xl font-bold text-foreground">Emotion Detector AI</h2>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
                 Your personal AI health consultant. Ask about emotions, biometrics, wellness strategies, and more.
               </p>
