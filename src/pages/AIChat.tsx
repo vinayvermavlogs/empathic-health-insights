@@ -246,7 +246,7 @@ const AIChat = () => {
             </Button>
           </form>
           <p className="text-[10px] text-muted-foreground text-center mt-2">
-            NeuroSense AI provides wellness guidance, not medical diagnoses. Consult a healthcare professional for medical concerns.
+            Emotion Detector AI provides wellness guidance, not medical diagnoses. Consult a healthcare professional for medical concerns.
           </p>
         </div>
       </div>

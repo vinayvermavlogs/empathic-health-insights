@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import AIChat from "./pages/AIChat";
 import Architecture from "./pages/Architecture";
+import MentalHealthCard from "./pages/MentalHealthCard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/ai-chat" element={<AIChat />} />
           <Route path="/architecture" element={<Architecture />} />
+          <Route path="/mental-health-card" element={<MentalHealthCard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
