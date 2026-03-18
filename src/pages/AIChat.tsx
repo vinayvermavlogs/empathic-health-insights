@@ -115,7 +115,7 @@ const AIChat = () => {
           </Button>
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
-            <h1 className="text-sm font-semibold text-foreground">🤖 NeuroSense AI</h1>
+            <h1 className="text-sm font-semibold text-foreground">🤖 Emotion Detector AI</h1>
           </div>
           <Button variant="ghost" size="sm" onClick={() => setMessages([])} className="gap-1.5 text-xs">
             <Trash2 className="w-4 h-4" /> Clear
@@ -131,7 +131,7 @@ const AIChat = () => {
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
                 <Brain className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-xl font-bold text-foreground">NeuroSense AI Assistant</h2>
+              <h2 className="text-xl font-bold text-foreground">Emotion Detector AI</h2>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
                 Your personal AI health consultant. Ask about emotions, biometrics, wellness strategies, and more.
               </p>
@@ -246,7 +246,7 @@ const AIChat = () => {
             </Button>
           </form>
           <p className="text-[10px] text-muted-foreground text-center mt-2">
-            NeuroSense AI provides wellness guidance, not medical diagnoses. Consult a healthcare professional for medical concerns.
+            Emotion Detector AI provides wellness guidance, not medical diagnoses. Consult a healthcare professional for medical concerns.
           </p>
         </div>
       </div>

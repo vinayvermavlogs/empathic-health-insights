@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Pause, Play, Radio, Sun, Moon, Menu, X, User, Save, LogIn, Bot, Layers } from 'lucide-react';
+import { Activity, Pause, Play, Sun, Moon, Menu, X, User, Save, LogIn, Bot, Layers, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEmotionSimulator } from '@/hooks/useEmotionSimulator';
 import { useTheme } from '@/hooks/useTheme';
@@ -19,6 +19,7 @@ import { AIInsightsPanel } from '@/components/AIInsightsPanel';
 import { LiveSubtitles } from '@/components/LiveSubtitles';
 import { AISessionSummary } from '@/components/AISessionSummary';
 import { useNavigate } from 'react-router-dom';
+import logoImg from '@/assets/logo.png';
 
 const Index = () => {
   const { currentSnapshot, history, isLive, setIsLive } = useEmotionSimulator(2000);
@@ -37,7 +38,7 @@ const Index = () => {
 
   if (!currentSnapshot) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center space-y-3">
           <Activity className="w-8 h-8 text-primary animate-pulse mx-auto" />
           <p className="text-sm text-muted-foreground">Initializing sensors...</p>
@@ -52,75 +53,60 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border sticky top-0 z-30 bg-background/90 backdrop-blur-xl">
-        <div className="container max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm">
-              <Radio className="w-4 h-4 text-primary-foreground" />
-            </div>
+        <div className="container max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <img src={logoImg} alt="Emotion Detector" className="w-9 h-9 rounded-xl object-contain" />
             <div>
-              <h1 className="text-base font-semibold text-foreground tracking-tight">NeuroSense</h1>
-              <p className="text-[10px] text-muted-foreground font-medium hidden sm:block">Emotion & Health Monitor</p>
+              <h1 className="text-sm sm:text-base font-bold text-foreground tracking-tight">Emotion Detector</h1>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium hidden xs:block">AI-Powered Emotion & Health Monitor</p>
             </div>
           </div>
 
           {/* Desktop controls */}
-          <div className="hidden sm:flex items-center gap-2 sm:gap-3">
-            <span className="text-xs font-mono text-muted-foreground hidden md:inline">
+          <div className="hidden md:flex items-center gap-2">
+            <span className="text-[10px] font-mono text-muted-foreground">
               🕐 {currentSnapshot.timestamp.toLocaleTimeString()}
             </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsLive(!isLive)}
-              className="gap-1.5 text-xs border-border"
-            >
+            <Button variant="outline" size="sm" onClick={() => setIsLive(!isLive)} className="gap-1.5 text-xs border-border h-8">
               {isLive ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
               {isLive ? 'Pause' : 'Resume'}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleTheme}
-              className="gap-1.5 text-xs border-border"
-            >
+            <Button variant="outline" size="sm" onClick={toggleTheme} className="gap-1.5 text-xs border-border h-8">
               {theme === 'dark' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
-              <span className="hidden md:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
             </Button>
             <ReportExport history={history} sessionId="SESSION-001" />
-            <Button variant="outline" size="sm" onClick={() => navigate('/ai-chat')} className="gap-1.5 text-xs border-border">
-              <Bot className="w-3 h-3" /> <span className="hidden md:inline">AI Chat</span>
+            <Button variant="outline" size="sm" onClick={() => navigate('/mental-health-card')} className="gap-1.5 text-xs border-border h-8">
+              <FileText className="w-3 h-3" /> <span className="hidden lg:inline">Health Card</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate('/architecture')} className="gap-1.5 text-xs border-border">
-              <Layers className="w-3 h-3" /> <span className="hidden md:inline">Arch</span>
+            <Button variant="outline" size="sm" onClick={() => navigate('/ai-chat')} className="gap-1.5 text-xs border-border h-8">
+              <Bot className="w-3 h-3" /> <span className="hidden lg:inline">AI Chat</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/architecture')} className="gap-1.5 text-xs border-border h-8">
+              <Layers className="w-3 h-3" /> <span className="hidden lg:inline">Arch</span>
             </Button>
             {user ? (
               <>
-                <Button variant="outline" size="sm" onClick={handleSaveSession} className="gap-1.5 text-xs border-border">
-                  <Save className="w-3 h-3" /> <span className="hidden md:inline">Save</span>
+                <Button variant="outline" size="sm" onClick={handleSaveSession} className="gap-1.5 text-xs border-border h-8">
+                  <Save className="w-3 h-3" />
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => navigate('/profile')} className="gap-1.5 text-xs border-border">
-                  <User className="w-3 h-3" /> <span className="hidden md:inline">Profile</span>
+                <Button variant="outline" size="sm" onClick={() => navigate('/profile')} className="gap-1.5 text-xs border-border h-8">
+                  <User className="w-3 h-3" />
                 </Button>
               </>
             ) : (
-              <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="gap-1.5 text-xs border-border">
-                <LogIn className="w-3 h-3" /> <span className="hidden md:inline">Sign In</span>
+              <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="gap-1.5 text-xs border-border h-8">
+                <LogIn className="w-3 h-3" /> <span className="hidden lg:inline">Sign In</span>
               </Button>
             )}
           </div>
 
           {/* Mobile hamburger */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="sm:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
+          <Button variant="ghost" size="sm" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
         </div>
 
-        {/* Mobile dropdown menu */}
+        {/* Mobile dropdown */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
@@ -128,54 +114,41 @@ const Index = () => {
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="sm:hidden overflow-hidden border-t border-border bg-background"
+              className="md:hidden overflow-hidden border-t border-border bg-background"
             >
-              <div className="px-4 py-3 space-y-2">
+              <div className="px-3 py-3 space-y-2">
                 <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
                   🕐 {currentSnapshot.timestamp.toLocaleTimeString()}
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => { setIsLive(!isLive); setMobileMenuOpen(false); }}
-                    className="gap-1.5 text-xs border-border flex-1"
-                  >
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" size="sm" onClick={() => { setIsLive(!isLive); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border">
                     {isLive ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                    {isLive ? '⏸️ Pause' : '▶️ Resume'}
+                    {isLive ? 'Pause' : 'Resume'}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => { toggleTheme(); setMobileMenuOpen(false); }}
-                    className="gap-1.5 text-xs border-border flex-1"
-                  >
+                  <Button variant="outline" size="sm" onClick={() => { toggleTheme(); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border">
                     {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
                   </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <div className="flex-1">
-                    <ReportExport history={history} sessionId="SESSION-001" />
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => { navigate('/ai-chat'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                  <div><ReportExport history={history} sessionId="SESSION-001" /></div>
+                  <Button variant="outline" size="sm" onClick={() => { navigate('/mental-health-card'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border">
+                    <FileText className="w-3 h-3" /> Health Card
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => { navigate('/ai-chat'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border">
                     <Bot className="w-3 h-3" /> AI Chat
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => { navigate('/architecture'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                  <Button variant="outline" size="sm" onClick={() => { navigate('/architecture'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border">
                     <Layers className="w-3 h-3" /> Architecture
                   </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
                   {user ? (
                     <>
-                      <Button variant="outline" size="sm" onClick={() => { handleSaveSession(); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
-                        <Save className="w-3 h-3" /> Save Session
+                      <Button variant="outline" size="sm" onClick={() => { handleSaveSession(); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border">
+                        <Save className="w-3 h-3" /> Save
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                      <Button variant="outline" size="sm" onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border">
                         <User className="w-3 h-3" /> Profile
                       </Button>
                     </>
                   ) : (
-                    <Button variant="outline" size="sm" onClick={() => { navigate('/auth'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border flex-1">
+                    <Button variant="outline" size="sm" onClick={() => { navigate('/auth'); setMobileMenuOpen(false); }} className="gap-1.5 text-xs border-border col-span-2">
                       <LogIn className="w-3 h-3" /> Sign In
                     </Button>
                   )}
@@ -187,21 +160,21 @@ const Index = () => {
       </header>
 
       {/* Dashboard */}
-      <main className="container max-w-7xl mx-auto px-4 py-6">
+      <main className="container max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4"
         >
           {/* Left Column - Webcam */}
-          <div className="md:col-span-2 lg:col-span-5 space-y-4 order-1">
+          <div className="md:col-span-2 lg:col-span-5 space-y-3 sm:space-y-4 order-1">
             <WebcamAnalysis />
             <LiveSubtitles />
           </div>
 
           {/* Center Column - Charts & AI */}
-          <div className="md:col-span-1 lg:col-span-4 space-y-4 order-3 lg:order-2">
+          <div className="md:col-span-1 lg:col-span-4 space-y-3 sm:space-y-4 order-3 lg:order-2">
             <AIInsightsPanel history={history} />
             <AISessionSummary history={history} mode="session-summary" />
             <AISessionSummary history={history} mode="emotion-predict" />
@@ -211,7 +184,7 @@ const Index = () => {
           </div>
 
           {/* Right Column - Panels & Log */}
-          <div className="md:col-span-1 lg:col-span-3 space-y-4 order-2 lg:order-3">
+          <div className="md:col-span-1 lg:col-span-3 space-y-3 sm:space-y-4 order-2 lg:order-3">
             <EmotionPanel
               emotions={currentSnapshot.emotions}
               dominantEmotion={currentSnapshot.dominantEmotion}
