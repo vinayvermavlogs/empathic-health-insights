@@ -115,7 +115,7 @@ const AIChat = () => {
           </Button>
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
-            <h1 className="text-sm font-semibold text-foreground">🤖 NeuroSense AI</h1>
+            <h1 className="text-sm font-semibold text-foreground">🤖 Emotion Detector AI</h1>
           </div>
           <Button variant="ghost" size="sm" onClick={() => setMessages([])} className="gap-1.5 text-xs">
             <Trash2 className="w-4 h-4" /> Clear
