@@ -66,7 +66,7 @@ function drawHeader(doc: jsPDF, now: Date, sessionId: string, status: string) {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(148, 163, 184);
   doc.text('Comprehensive Emotion & Biometric Analysis', 42, 24);
-  doc.text(`Report ID: NS-${Date.now().toString(36).toUpperCase()}`, 42, 30);
+  doc.text(`Report ID: ED-${Date.now().toString(36).toUpperCase()}`, 42, 30);
 
   // Right side info
   doc.setTextColor(148, 163, 184);
