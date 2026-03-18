@@ -317,7 +317,7 @@ export function WebcamAnalysis() {
       </div>
 
       {/* Video Feed - Larger */}
-      <div className="relative rounded-lg overflow-hidden bg-secondary mb-3 aspect-[4/3]">
+      <div className="relative rounded-2xl overflow-hidden bg-secondary mb-3 aspect-[4/3]">
         <video
           ref={videoRef}
           autoPlay
@@ -332,15 +332,22 @@ export function WebcamAnalysis() {
           </div>
         )}
         {isAnalyzing && (
-          <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
             <Loader2 className="w-6 h-6 text-primary animate-spin" />
           </div>
         )}
         {/* Blink counter overlay */}
         {isActive && blinkCount > 0 && (
-          <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-md px-2 py-1 text-xs font-mono text-primary">
+          <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-mono text-primary">
             Blinks: {blinkCount}/3
           </div>
+        )}
+        {/* Live emotion percentage overlay */}
+        {isActive && lastResult && (
+          <LiveEmotionOverlay
+            emotions={lastResult.emotions}
+            isVisible={true}
+          />
         )}
         <canvas ref={canvasRef} className="hidden" />
         <canvas

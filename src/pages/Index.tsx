@@ -51,15 +51,15 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border sticky top-0 z-30 bg-background/80 backdrop-blur-md">
+      <header className="border-b border-border sticky top-0 z-30 bg-background/90 backdrop-blur-xl">
         <div className="container max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Radio className="w-4 h-4 text-primary" />
+            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm">
+              <Radio className="w-4 h-4 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-foreground tracking-tight">🧠 NeuroSense</h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest hidden sm:block">Emotion & Health Monitor</p>
+              <h1 className="text-base font-semibold text-foreground tracking-tight">NeuroSense</h1>
+              <p className="text-[10px] text-muted-foreground font-medium hidden sm:block">Emotion & Health Monitor</p>
             </div>
           </div>
 
