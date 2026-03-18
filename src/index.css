@@ -199,6 +199,26 @@
     @apply tg-bubble bg-card text-card-foreground border border-border;
     border-bottom-left-radius: 4px;
   }
+
+  /* Mental health card */
+  .mental-health-card {
+    @apply bg-card border border-border rounded-2xl overflow-hidden shadow-lg;
+    transition: box-shadow 0.3s ease;
+  }
+
+  .mental-health-card:hover {
+    box-shadow: 0 8px 40px -12px hsl(var(--primary) / 0.25), 0 4px 24px -8px hsl(var(--foreground) / 0.06);
+  }
+
+  /* Session report card */
+  .session-report-card {
+    @apply border-border/60;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+  }
+
+  .session-report-card:hover {
+    transform: translateY(-2px);
+  }
 }
 
 @keyframes pulse-glow {
