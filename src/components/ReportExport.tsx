@@ -60,7 +60,7 @@ function drawHeader(doc: jsPDF, now: Date, sessionId: string, status: string) {
   // Title
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text('NEUROSENSE HEALTH REPORT', 42, 17);
+  doc.text('EMOTION DETECTOR HEALTH REPORT', 42, 17);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
