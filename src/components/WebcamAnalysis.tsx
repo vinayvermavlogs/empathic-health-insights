@@ -11,6 +11,7 @@ import { EyeAnalysisPanel } from '@/components/EyeAnalysisPanel';
 import { BlinkSignalBanner } from '@/components/BlinkSignalBanner';
 import { GestureSignalsPanel } from '@/components/GestureSignalsPanel';
 import { SignLanguagePanel, LETTER_MESSAGES } from '@/components/SignLanguagePanel';
+import { LiveEmotionOverlay } from '@/components/LiveEmotionOverlay';
 import type { SignLanguageDetection } from '@/components/SignLanguagePanel';
 
 export interface SkinAnalysis {
