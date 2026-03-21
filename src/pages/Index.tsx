@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Pause, Play, Sun, Moon, Menu, X, User, Save, LogIn, Bot, Layers, FileText } from 'lucide-react';
+import { Activity, Pause, Play, Sun, Moon, Menu, X, User, Save, LogIn, Bot, Layers, FileText, ImageUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEmotionSimulator } from '@/hooks/useEmotionSimulator';
 import { useTheme } from '@/hooks/useTheme';
@@ -83,6 +83,9 @@ const Index = () => {
             </Button>
             <Button variant="outline" size="sm" onClick={() => navigate('/architecture')} className="gap-1.5 text-xs border-border h-8">
               <Layers className="w-3 h-3" /> <span className="hidden lg:inline">Arch</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/mood-analysis')} className="gap-1.5 text-xs border-border h-8">
+              <ImageUp className="w-3 h-3" /> <span className="hidden lg:inline">Photo Mood</span>
             </Button>
             {user ? (
               <>
