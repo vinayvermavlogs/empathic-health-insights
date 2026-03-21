@@ -28,8 +28,52 @@ const Index = () => {
   const { user } = useAuth();
   const { saveSession } = useSessionSaver();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const sessionStartRef = useRef(Date.now());
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [photoResults, setPhotoResults] = useState<{ id: string; time: string; emotions: { emotion: EmotionType; confidence: number }[]; mood: string; imgUrl: string }[]>([]);
+  const [photoAnalyzing, setPhotoAnalyzing] = useState(false);
+
+  const EMOTION_COLORS: Record<string, string> = {
+    happiness: '#22c55e', stress: '#ef4444', anxiety: '#f59e0b', sadness: '#3b82f6',
+    calmness: '#06b6d4', focus: '#8b5cf6', fatigue: '#6b7280', neutral: '#a3a3a3',
+  };
+
+  const analyzePhoto = useCallback(async (file: File) => {
+    setPhotoAnalyzing(true);
+    try {
+      const base64 = await new Promise<string>((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res((r.result as string).split(',')[1]);
+        r.onerror = rej;
+        r.readAsDataURL(file);
+      });
+      const { data, error } = await supabase.functions.invoke('analyze-face', { body: { imageBase64: base64 } });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      const emotions = (data.emotions || []).map((e: any) => ({ emotion: e.emotion as EmotionType, confidence: e.confidence })).sort((a: any, b: any) => b.confidence - a.confidence);
+      setPhotoResults(prev => [...prev, {
+        id: crypto.randomUUID(),
+        time: new Date().toLocaleTimeString(),
+        emotions,
+        mood: data.overallMood || emotions[0]?.emotion || 'neutral',
+        imgUrl: URL.createObjectURL(file),
+      }]);
+      toast({ title: 'Mood Detected', description: `Overall: ${data.overallMood || emotions[0]?.emotion}` });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setPhotoAnalyzing(false);
+    }
+  }, [toast]);
+
+  const photoChartData = photoResults.map((r, i) => {
+    const pt: any = { name: `#${i + 1}`, time: r.time };
+    r.emotions.forEach(e => { pt[e.emotion] = e.confidence; });
+    return pt;
+  });
+  const allPhotoEmotions = Array.from(new Set(photoResults.flatMap(r => r.emotions.map(e => e.emotion))));
 
   const handleSaveSession = () => {
     const durationSeconds = Math.round((Date.now() - sessionStartRef.current) / 1000);
