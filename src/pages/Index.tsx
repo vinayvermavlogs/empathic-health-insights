@@ -221,14 +221,73 @@ const Index = () => {
             <LiveSubtitles />
           </div>
 
-          {/* Center Column - Charts & AI */}
+          {/* Center Column - Photo Mood & AI */}
           <div className="md:col-span-1 lg:col-span-4 space-y-3 sm:space-y-4 order-3 lg:order-2">
+            {/* Photo Upload */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs flex items-center gap-1.5">
+                  <Upload className="w-3.5 h-3.5 text-primary" /> Upload Photo for Mood Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) analyzePhoto(f); e.target.value = ''; }} />
+                <Button
+                  variant="outline"
+                  className="w-full h-20 border-dashed border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 gap-2 text-xs"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={photoAnalyzing}
+                >
+                  {photoAnalyzing ? (
+                    <><span className="animate-spin">⏳</span> Analyzing...</>
+                  ) : (
+                    <><ImageUp className="w-5 h-5 text-primary" /> Drop or click to upload photo</>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Mood Comparison Graph */}
+            {photoResults.length > 0 && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs flex items-center gap-1.5">
+                      <TrendingUp className="w-3.5 h-3.5 text-primary" /> Mood Prediction Graph
+                      <span className="ml-auto text-[10px] text-muted-foreground font-normal">{photoResults.length} scans</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-56">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={photoChartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                          <defs>
+                            {allPhotoEmotions.map(em => (
+                              <linearGradient key={em} id={`mg-${em}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={EMOTION_COLORS[em] || '#888'} stopOpacity={0.35} />
+                                <stop offset="95%" stopColor={EMOTION_COLORS[em] || '#888'} stopOpacity={0} />
+                              </linearGradient>
+                            ))}
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                          <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                          <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} unit="%" />
+                          <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '10px', fontSize: '11px' }} />
+                          <Legend wrapperStyle={{ fontSize: '10px' }} />
+                          {allPhotoEmotions.map(em => (
+                            <Area key={em} type="monotone" dataKey={em} stroke={EMOTION_COLORS[em] || '#888'} fill={`url(#mg-${em})`} strokeWidth={2} dot={{ r: 3, fill: EMOTION_COLORS[em] || '#888' }} connectNulls />
+                          ))}
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
             <AIInsightsPanel history={history} />
             <AISessionSummary history={history} mode="session-summary" />
             <AISessionSummary history={history} mode="emotion-predict" />
-            <HealthMetricsPanel metrics={currentSnapshot.health} />
-            <EmotionTimeline history={history} />
-            <HealthTimeline history={history} />
           </div>
 
           {/* Right Column - Panels & Log */}
