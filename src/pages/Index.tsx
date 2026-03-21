@@ -84,6 +84,9 @@ const Index = () => {
             <Button variant="outline" size="sm" onClick={() => navigate('/architecture')} className="gap-1.5 text-xs border-border h-8">
               <Layers className="w-3 h-3" /> <span className="hidden lg:inline">Arch</span>
             </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/mood-analysis')} className="gap-1.5 text-xs border-border h-8">
+              <ImageUp className="w-3 h-3" /> <span className="hidden lg:inline">Photo Mood</span>
+            </Button>
             {user ? (
               <>
                 <Button variant="outline" size="sm" onClick={handleSaveSession} className="gap-1.5 text-xs border-border h-8">
