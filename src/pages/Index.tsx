@@ -21,7 +21,6 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import logoImg from '@/assets/logo.png';
-import logoImg from '@/assets/logo.png';
 
 const Index = () => {
   const { currentSnapshot, history, isLive, setIsLive } = useEmotionSimulator(2000);
