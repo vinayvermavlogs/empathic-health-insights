@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import AIChat from "./pages/AIChat";
 import Architecture from "./pages/Architecture";
 import MentalHealthCard from "./pages/MentalHealthCard";
+import MoodAnalysis from "./pages/MoodAnalysis";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
