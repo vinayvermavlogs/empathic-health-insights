@@ -1,16 +1,14 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Pause, Play, Sun, Moon, Menu, X, User, Save, LogIn, Bot, Layers, FileText, ImageUp } from 'lucide-react';
+import { Activity, Pause, Play, Sun, Moon, Menu, X, User, Save, LogIn, Bot, Layers, FileText, ImageUp, Upload, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEmotionSimulator } from '@/hooks/useEmotionSimulator';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessionSaver } from '@/hooks/useSessionSaver';
-import { getRecommendations } from '@/lib/healthMapping';
+import { getRecommendations, type EmotionType } from '@/lib/healthMapping';
 import { EmotionPanel } from '@/components/EmotionPanel';
-import { HealthMetricsPanel } from '@/components/HealthMetricsPanel';
-import { EmotionTimeline } from '@/components/EmotionTimeline';
-import { HealthTimeline } from '@/components/HealthTimeline';
 import { RecommendationsPanel } from '@/components/RecommendationsPanel';
 import { DetectionLog } from '@/components/DetectionLog';
 import { ReportExport } from '@/components/ReportExport';
@@ -19,6 +17,10 @@ import { AIInsightsPanel } from '@/components/AIInsightsPanel';
 import { LiveSubtitles } from '@/components/LiveSubtitles';
 import { AISessionSummary } from '@/components/AISessionSummary';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import logoImg from '@/assets/logo.png';
 import logoImg from '@/assets/logo.png';
 
 const Index = () => {
