@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Pause, Play, Sun, Moon, Menu, X, User, Save, LogIn, Bot, Layers, FileText } from 'lucide-react';
+import { Activity, Pause, Play, Sun, Moon, Menu, X, User, Save, LogIn, Bot, Layers, FileText, ImageUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEmotionSimulator } from '@/hooks/useEmotionSimulator';
 import { useTheme } from '@/hooks/useTheme';
