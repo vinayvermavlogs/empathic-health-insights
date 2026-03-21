@@ -247,38 +247,85 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            {/* Mood Comparison Graph */}
+            {/* Mood Comparison Graph - Trading Chart Style */}
             {photoResults.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-xs flex items-center gap-1.5">
-                      <TrendingUp className="w-3.5 h-3.5 text-primary" /> Mood Prediction Graph
-                      <span className="ml-auto text-[10px] text-muted-foreground font-normal">{photoResults.length} scans</span>
-                    </CardTitle>
+                <Card className="bg-[#131722] border-[#1e222d] overflow-hidden">
+                  <CardHeader className="pb-1 pt-3 px-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xs flex items-center gap-1.5 text-[#d1d4dc]">
+                        <TrendingUp className="w-3.5 h-3.5 text-[#2962ff]" /> Mood Prediction · Live
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        {allPhotoEmotions.map(em => (
+                          <span key={em} className="flex items-center gap-1 text-[9px] font-mono">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: EMOTION_COLORS[em] }} />
+                            <span style={{ color: EMOTION_COLORS[em] }}>{em}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="h-56">
+                  <CardContent className="p-0">
+                    {/* Main chart */}
+                    <div className="h-48 px-2">
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={photoChartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                        <AreaChart data={photoChartData} margin={{ top: 10, right: 15, left: 0, bottom: 0 }}>
                           <defs>
                             {allPhotoEmotions.map(em => (
                               <linearGradient key={em} id={`mg-${em}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={EMOTION_COLORS[em] || '#888'} stopOpacity={0.35} />
-                                <stop offset="95%" stopColor={EMOTION_COLORS[em] || '#888'} stopOpacity={0} />
+                                <stop offset="0%" stopColor={EMOTION_COLORS[em] || '#888'} stopOpacity={0.15} />
+                                <stop offset="100%" stopColor={EMOTION_COLORS[em] || '#888'} stopOpacity={0} />
                               </linearGradient>
                             ))}
                           </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                          <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                          <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} unit="%" />
-                          <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '10px', fontSize: '11px' }} />
-                          <Legend wrapperStyle={{ fontSize: '10px' }} />
-                          {allPhotoEmotions.map(em => (
-                            <Area key={em} type="monotone" dataKey={em} stroke={EMOTION_COLORS[em] || '#888'} fill={`url(#mg-${em})`} strokeWidth={2} dot={{ r: 3, fill: EMOTION_COLORS[em] || '#888' }} connectNulls />
+                          <CartesianGrid stroke="#1e222d" strokeDasharray="none" vertical={true} horizontal={true} />
+                          <XAxis dataKey="time" tick={{ fontSize: 9, fill: '#787b86' }} axisLine={{ stroke: '#1e222d' }} tickLine={{ stroke: '#1e222d' }} />
+                          <YAxis domain={[0, 100]} tick={{ fontSize: 9, fill: '#787b86' }} axisLine={{ stroke: '#1e222d' }} tickLine={{ stroke: '#1e222d' }} unit="%" width={35} />
+                          <Tooltip
+                            contentStyle={{ background: '#1e222d', border: '1px solid #363a45', borderRadius: '4px', fontSize: '10px', color: '#d1d4dc' }}
+                            itemStyle={{ color: '#d1d4dc', fontSize: '10px' }}
+                            labelStyle={{ color: '#787b86', fontSize: '9px', marginBottom: '4px' }}
+                            cursor={{ stroke: '#363a45', strokeDasharray: '3 3' }}
+                          />
+                          {allPhotoEmotions.map((em, i) => (
+                            <Area
+                              key={em}
+                              type="monotone"
+                              dataKey={em}
+                              stroke={EMOTION_COLORS[em] || '#888'}
+                              fill={`url(#mg-${em})`}
+                              strokeWidth={i === 0 ? 2.5 : 1.5}
+                              dot={false}
+                              activeDot={{ r: 4, stroke: EMOTION_COLORS[em], fill: '#131722', strokeWidth: 2 }}
+                              connectNulls
+                            />
                           ))}
                         </AreaChart>
                       </ResponsiveContainer>
+                    </div>
+
+                    {/* Performance comparison bar */}
+                    <div className="border-t border-[#1e222d] px-4 py-2">
+                      <p className="text-[9px] text-[#787b86] mb-1.5 font-mono">Performance Comparison</p>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1">
+                        {photoResults.length > 0 && photoResults[photoResults.length - 1].emotions.slice(0, 6).map(e => {
+                          const prev = photoResults.length > 1 ? photoResults[photoResults.length - 2].emotions.find(p => p.emotion === e.emotion)?.confidence || 0 : 0;
+                          const diff = e.confidence - prev;
+                          return (
+                            <div key={e.emotion} className="flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: EMOTION_COLORS[e.emotion] }} />
+                              <span className="text-[10px] font-mono capitalize" style={{ color: EMOTION_COLORS[e.emotion] }}>{e.emotion}</span>
+                              <span className="text-[10px] font-mono font-bold" style={{ color: EMOTION_COLORS[e.emotion] }}>{e.confidence}%</span>
+                              {photoResults.length > 1 && (
+                                <span className={`text-[9px] font-mono ${diff >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
+                                  {diff >= 0 ? '▲' : '▼'}{Math.abs(diff).toFixed(0)}%
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
