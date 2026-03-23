@@ -339,7 +339,7 @@ const Index = () => {
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) analyzePhoto(f); e.target.value = ''; }} />
                 <Button
                   variant="outline"
-                  className="w-full h-20 border-dashed border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 gap-2 text-xs"
+                  className="w-full h-16 sm:h-20 border-dashed border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 gap-2 text-xs"
                   onClick={() => fileRef.current?.click()}
                   disabled={photoAnalyzing}
                 >
