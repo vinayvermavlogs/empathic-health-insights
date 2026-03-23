@@ -65,7 +65,11 @@ interface FaceAnalysisResult {
   boundingBoxes?: BoundingBox[];
 }
 
-export function WebcamAnalysis() {
+interface WebcamAnalysisProps {
+  onScanResult?: (result: { emotions: { emotion: EmotionType; confidence: number }[]; mood: string; timestamp: Date }) => void;
+}
+
+export function WebcamAnalysis({ onScanResult }: WebcamAnalysisProps = {}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -267,6 +271,13 @@ export function WebcamAnalysis() {
 
       const dominant = result.emotions[0]?.emotion ?? 'neutral';
       setRecommendations(getRecommendations(dominant, health));
+
+      // Notify parent with scan result
+      onScanResult?.({
+        emotions: result.emotions,
+        mood: result.overallMood || dominant,
+        timestamp: new Date(),
+      });
     } catch (err) {
       console.error('Analysis catch:', err);
       // Graceful — don't crash, just warn
