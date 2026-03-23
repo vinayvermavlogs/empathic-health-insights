@@ -65,7 +65,11 @@ interface FaceAnalysisResult {
   boundingBoxes?: BoundingBox[];
 }
 
-export function WebcamAnalysis() {
+interface WebcamAnalysisProps {
+  onScanResult?: (result: { emotions: { emotion: EmotionType; confidence: number }[]; mood: string; timestamp: Date }) => void;
+}
+
+export function WebcamAnalysis({ onScanResult }: WebcamAnalysisProps = {}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
