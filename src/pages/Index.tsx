@@ -218,7 +218,111 @@ const Index = () => {
         >
           {/* Left Column - Webcam */}
           <div className="md:col-span-2 lg:col-span-5 space-y-3 sm:space-y-4 order-1">
-            <WebcamAnalysis />
+            <WebcamAnalysis onScanResult={(r) => {
+              setLiveResults(prev => [...prev, {
+                time: r.timestamp.toLocaleTimeString(),
+                emotions: r.emotions,
+                mood: r.mood,
+              }]);
+            }} />
+
+            {/* Live Camera Mood Graph */}
+            {liveResults.length > 0 && (() => {
+              const liveChartData = liveResults.map((r, i) => {
+                const pt: any = { name: `#${i + 1}`, time: r.time };
+                r.emotions.forEach(e => { pt[e.emotion] = e.confidence; });
+                return pt;
+              });
+              const allLiveEmotions = Array.from(new Set(liveResults.flatMap(r => r.emotions.map(e => e.emotion))));
+              const latest = liveResults[liveResults.length - 1];
+              const prev = liveResults.length > 1 ? liveResults[liveResults.length - 2] : null;
+
+              // Efficiency: avg confidence of dominant emotion over all scans
+              const dominantEm = latest.emotions[0]?.emotion;
+              const avgDominant = dominantEm
+                ? liveResults.reduce((sum, r) => sum + (r.emotions.find(e => e.emotion === dominantEm)?.confidence || 0), 0) / liveResults.length
+                : 0;
+
+              return (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                  <Card className="bg-[#131722] border-[#1e222d] overflow-hidden">
+                    <CardHeader className="pb-1 pt-3 px-4">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <CardTitle className="text-xs flex items-center gap-1.5 text-[#d1d4dc]">
+                          <BarChart3 className="w-3.5 h-3.5 text-[#26a69a]" /> Live Camera Mood · {liveResults.length} Scans
+                        </CardTitle>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {allLiveEmotions.slice(0, 6).map(em => (
+                            <span key={em} className="flex items-center gap-0.5 text-[8px] font-mono">
+                              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: EMOTION_COLORS[em] }} />
+                              <span style={{ color: EMOTION_COLORS[em] }}>{em}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="h-52 px-2">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={liveChartData} margin={{ top: 10, right: 15, left: 0, bottom: 0 }}>
+                            <defs>
+                              {allLiveEmotions.map(em => (
+                                <linearGradient key={em} id={`lg-${em}`} x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor={EMOTION_COLORS[em] || '#888'} stopOpacity={0.2} />
+                                  <stop offset="100%" stopColor={EMOTION_COLORS[em] || '#888'} stopOpacity={0} />
+                                </linearGradient>
+                              ))}
+                            </defs>
+                            <CartesianGrid stroke="#1e222d" strokeDasharray="none" />
+                            <XAxis dataKey="time" tick={{ fontSize: 9, fill: '#787b86' }} axisLine={{ stroke: '#1e222d' }} tickLine={{ stroke: '#1e222d' }} />
+                            <YAxis domain={[0, 100]} tick={{ fontSize: 9, fill: '#787b86' }} axisLine={{ stroke: '#1e222d' }} tickLine={{ stroke: '#1e222d' }} unit="%" width={35} />
+                            <Tooltip
+                              contentStyle={{ background: '#1e222d', border: '1px solid #363a45', borderRadius: '4px', fontSize: '10px', color: '#d1d4dc' }}
+                              itemStyle={{ color: '#d1d4dc', fontSize: '10px' }}
+                              labelStyle={{ color: '#787b86', fontSize: '9px' }}
+                              cursor={{ stroke: '#363a45', strokeDasharray: '3 3' }}
+                            />
+                            {allLiveEmotions.map((em, i) => (
+                              <Area key={em} type="monotone" dataKey={em} stroke={EMOTION_COLORS[em] || '#888'} fill={`url(#lg-${em})`} strokeWidth={i === 0 ? 2.5 : 1.5} dot={false} activeDot={{ r: 4, stroke: EMOTION_COLORS[em], fill: '#131722', strokeWidth: 2 }} connectNulls />
+                            ))}
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Comparison & Efficiency */}
+                      <div className="border-t border-[#1e222d] px-4 py-2 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[9px] text-[#787b86] font-mono">Scan Comparison</p>
+                          <div className="flex items-center gap-1.5 bg-[#1e222d] rounded px-2 py-0.5">
+                            <span className="text-[8px] text-[#787b86] font-mono">Efficiency</span>
+                            <span className="text-[10px] font-mono font-bold text-[#26a69a]">{avgDominant.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-x-3 gap-y-1">
+                          {latest.emotions.slice(0, 6).map(e => {
+                            const prevVal = prev?.emotions.find(p => p.emotion === e.emotion)?.confidence || 0;
+                            const diff = e.confidence - prevVal;
+                            return (
+                              <div key={e.emotion} className="flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: EMOTION_COLORS[e.emotion] }} />
+                                <span className="text-[10px] font-mono capitalize" style={{ color: EMOTION_COLORS[e.emotion] }}>{e.emotion}</span>
+                                <span className="text-[10px] font-mono font-bold" style={{ color: EMOTION_COLORS[e.emotion] }}>{e.confidence}%</span>
+                                {prev && (
+                                  <span className={`text-[9px] font-mono ${diff >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
+                                    {diff >= 0 ? '▲' : '▼'}{Math.abs(diff).toFixed(0)}%
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })()}
+
             <LiveSubtitles />
           </div>
 
