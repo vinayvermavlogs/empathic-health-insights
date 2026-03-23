@@ -34,6 +34,7 @@ const Index = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [photoResults, setPhotoResults] = useState<{ id: string; time: string; emotions: { emotion: EmotionType; confidence: number }[]; mood: string; imgUrl: string }[]>([]);
   const [photoAnalyzing, setPhotoAnalyzing] = useState(false);
+  const [liveResults, setLiveResults] = useState<{ time: string; emotions: { emotion: EmotionType; confidence: number }[]; mood: string }[]>([]);
 
   const EMOTION_COLORS: Record<string, string> = {
     happiness: '#22c55e', stress: '#ef4444', anxiety: '#f59e0b', sadness: '#3b82f6',
