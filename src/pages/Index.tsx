@@ -361,10 +361,10 @@ const Index = () => {
                       <CardTitle className="text-xs flex items-center gap-1.5 text-[#d1d4dc]">
                         <TrendingUp className="w-3.5 h-3.5 text-[#2962ff]" /> Mood Prediction · Live
                       </CardTitle>
-                      <div className="flex items-center gap-2">
-                        {allPhotoEmotions.map(em => (
-                          <span key={em} className="flex items-center gap-1 text-[9px] font-mono">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: EMOTION_COLORS[em] }} />
+                      <div className="flex items-center gap-1.5 flex-wrap max-w-[55%] sm:max-w-none justify-end">
+                        {allPhotoEmotions.slice(0, 4).map(em => (
+                          <span key={em} className="flex items-center gap-0.5 text-[7px] sm:text-[9px] font-mono">
+                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0" style={{ backgroundColor: EMOTION_COLORS[em] }} />
                             <span style={{ color: EMOTION_COLORS[em] }}>{em}</span>
                           </span>
                         ))}
