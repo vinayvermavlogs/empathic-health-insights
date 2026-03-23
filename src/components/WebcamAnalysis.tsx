@@ -271,6 +271,13 @@ export function WebcamAnalysis({ onScanResult }: WebcamAnalysisProps = {}) {
 
       const dominant = result.emotions[0]?.emotion ?? 'neutral';
       setRecommendations(getRecommendations(dominant, health));
+
+      // Notify parent with scan result
+      onScanResult?.({
+        emotions: result.emotions,
+        mood: result.overallMood || dominant,
+        timestamp: new Date(),
+      });
     } catch (err) {
       console.error('Analysis catch:', err);
       // Graceful — don't crash, just warn
