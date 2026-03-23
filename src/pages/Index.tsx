@@ -262,7 +262,7 @@ const Index = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                      <div className="h-52 px-2">
+                      <div className="h-40 sm:h-52 px-1 sm:px-2">
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={liveChartData} margin={{ top: 10, right: 15, left: 0, bottom: 0 }}>
                             <defs>
