@@ -214,7 +214,7 @@ const Index = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4"
+          className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4"
         >
           {/* Left Column - Webcam */}
           <div className="md:col-span-2 lg:col-span-5 space-y-3 sm:space-y-4 order-1">
@@ -251,10 +251,10 @@ const Index = () => {
                         <CardTitle className="text-xs flex items-center gap-1.5 text-[#d1d4dc]">
                           <BarChart3 className="w-3.5 h-3.5 text-[#26a69a]" /> Live Camera Mood · {liveResults.length} Scans
                         </CardTitle>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {allLiveEmotions.slice(0, 6).map(em => (
-                            <span key={em} className="flex items-center gap-0.5 text-[8px] font-mono">
-                              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: EMOTION_COLORS[em] }} />
+                        <div className="flex items-center gap-1.5 flex-wrap max-w-[60%] sm:max-w-none justify-end">
+                          {allLiveEmotions.slice(0, 4).map(em => (
+                            <span key={em} className="flex items-center gap-0.5 text-[7px] sm:text-[8px] font-mono">
+                              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: EMOTION_COLORS[em] }} />
                               <span style={{ color: EMOTION_COLORS[em] }}>{em}</span>
                             </span>
                           ))}
@@ -262,7 +262,7 @@ const Index = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                      <div className="h-52 px-2">
+                      <div className="h-40 sm:h-52 px-1 sm:px-2">
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={liveChartData} margin={{ top: 10, right: 15, left: 0, bottom: 0 }}>
                             <defs>
@@ -339,7 +339,7 @@ const Index = () => {
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) analyzePhoto(f); e.target.value = ''; }} />
                 <Button
                   variant="outline"
-                  className="w-full h-20 border-dashed border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 gap-2 text-xs"
+                  className="w-full h-16 sm:h-20 border-dashed border-2 border-primary/30 hover:border-primary/60 hover:bg-primary/5 gap-2 text-xs"
                   onClick={() => fileRef.current?.click()}
                   disabled={photoAnalyzing}
                 >
@@ -361,10 +361,10 @@ const Index = () => {
                       <CardTitle className="text-xs flex items-center gap-1.5 text-[#d1d4dc]">
                         <TrendingUp className="w-3.5 h-3.5 text-[#2962ff]" /> Mood Prediction · Live
                       </CardTitle>
-                      <div className="flex items-center gap-2">
-                        {allPhotoEmotions.map(em => (
-                          <span key={em} className="flex items-center gap-1 text-[9px] font-mono">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: EMOTION_COLORS[em] }} />
+                      <div className="flex items-center gap-1.5 flex-wrap max-w-[55%] sm:max-w-none justify-end">
+                        {allPhotoEmotions.slice(0, 4).map(em => (
+                          <span key={em} className="flex items-center gap-0.5 text-[7px] sm:text-[9px] font-mono">
+                            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0" style={{ backgroundColor: EMOTION_COLORS[em] }} />
                             <span style={{ color: EMOTION_COLORS[em] }}>{em}</span>
                           </span>
                         ))}
@@ -373,7 +373,7 @@ const Index = () => {
                   </CardHeader>
                   <CardContent className="p-0">
                     {/* Main chart */}
-                    <div className="h-48 px-2">
+                    <div className="h-40 sm:h-48 px-1 sm:px-2">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={photoChartData} margin={{ top: 10, right: 15, left: 0, bottom: 0 }}>
                           <defs>
