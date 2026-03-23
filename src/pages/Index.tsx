@@ -251,10 +251,10 @@ const Index = () => {
                         <CardTitle className="text-xs flex items-center gap-1.5 text-[#d1d4dc]">
                           <BarChart3 className="w-3.5 h-3.5 text-[#26a69a]" /> Live Camera Mood · {liveResults.length} Scans
                         </CardTitle>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {allLiveEmotions.slice(0, 6).map(em => (
-                            <span key={em} className="flex items-center gap-0.5 text-[8px] font-mono">
-                              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: EMOTION_COLORS[em] }} />
+                        <div className="flex items-center gap-1.5 flex-wrap max-w-[60%] sm:max-w-none justify-end">
+                          {allLiveEmotions.slice(0, 4).map(em => (
+                            <span key={em} className="flex items-center gap-0.5 text-[7px] sm:text-[8px] font-mono">
+                              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: EMOTION_COLORS[em] }} />
                               <span style={{ color: EMOTION_COLORS[em] }}>{em}</span>
                             </span>
                           ))}
