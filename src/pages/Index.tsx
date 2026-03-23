@@ -373,7 +373,7 @@ const Index = () => {
                   </CardHeader>
                   <CardContent className="p-0">
                     {/* Main chart */}
-                    <div className="h-48 px-2">
+                    <div className="h-40 sm:h-48 px-1 sm:px-2">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={photoChartData} margin={{ top: 10, right: 15, left: 0, bottom: 0 }}>
                           <defs>
