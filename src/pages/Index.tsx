@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Pause, Play, Sun, Moon, Menu, X, User, Save, LogIn, Bot, Layers, FileText, ImageUp, Upload, TrendingUp } from 'lucide-react';
+import { Activity, Pause, Play, Sun, Moon, Menu, X, User, Save, LogIn, Bot, Layers, FileText, ImageUp, Upload, TrendingUp, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEmotionSimulator } from '@/hooks/useEmotionSimulator';
