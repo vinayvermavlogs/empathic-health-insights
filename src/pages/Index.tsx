@@ -321,7 +321,6 @@ const Index = () => {
               );
             })()}
 
-            <LiveSubtitles />
           </div>
 
           {/* Center Column - Photo Mood & AI */}
