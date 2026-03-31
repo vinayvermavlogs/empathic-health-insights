@@ -9,125 +9,90 @@ interface ReportExportProps {
   sessionId?: string;
 }
 
+const EMOTION_HEX: Record<string, [number, number, number]> = {
+  happiness: [34, 197, 94],
+  stress: [239, 68, 68],
+  anxiety: [245, 158, 11],
+  sadness: [59, 130, 246],
+  calmness: [6, 182, 212],
+  focus: [139, 92, 246],
+  fatigue: [107, 114, 128],
+  neutral: [163, 163, 163],
+};
+
 const STATUS_COLORS: Record<string, [number, number, number]> = {
-  optimal: [34, 197, 94],
-  moderate: [234, 179, 8],
+  optimal: [16, 185, 129],
+  moderate: [245, 158, 11],
   elevated: [249, 115, 22],
   critical: [239, 68, 68],
 };
 
-const SIGN_LANGUAGE_MAP: Record<string, string> = {
-  a: 'Hello!', b: 'Bye, see you soon!', c: 'Call me!', d: 'Great job!',
-  e: 'Emergency!', f: 'Friends forever!', g: 'Good to go!', h: 'Going home!',
-  i: 'I have an idea!', j: 'Just happy!', k: 'Sending a kiss!', l: 'Love you!',
-  m: 'Good morning!', n: 'Good night!', o: 'OK, got it!', p: 'Please!',
-  q: 'I have a question!', r: 'Ready to go!', s: 'Shhh, be quiet!', t: 'Thank you!',
-  u: 'You! Yes, you!', v: 'Victory / Peace!', w: 'Welcome!', x: 'No / Stop!',
-  y: 'Yes! / Hang loose!', z: 'Sleepy / Zzz...',
+const STATUS_LABELS: Record<string, string> = {
+  optimal: '🟢 Excellent',
+  moderate: '🟡 Moderate',
+  elevated: '🟠 Needs Attention',
+  critical: '🔴 Critical',
 };
 
-const GESTURE_COMMANDS: Record<string, string> = {
-  'Shaking hand left-right': 'Hello / Greeting',
-  'Thumbs up': 'Approval / Yes',
-  'Thumbs down': 'Disapproval / No',
-  'Peace / Victory sign': 'Peace / Victory',
-  'OK sign': 'OK / Agreement',
-  'Waving hand': 'Hello / Goodbye',
-  'Pointing index': 'Directing attention',
-  'Open palm': 'Stop / Wait',
-  'Closed fist': 'Strength / Solidarity',
-  'Heart with hands': 'Love / Affection',
-};
-
-function drawHeader(doc: jsPDF, now: Date, sessionId: string, status: string) {
-  // Hospital header band
-  doc.setFillColor(15, 23, 42);
-  doc.rect(0, 0, 210, 38, 'F');
-
-  // Accent stripe
-  const sc = STATUS_COLORS[status] || STATUS_COLORS.optimal;
-  doc.setFillColor(sc[0], sc[1], sc[2]);
-  doc.rect(0, 38, 210, 2, 'F');
-
-  // Hospital icon placeholder (cross)
-  doc.setFillColor(45, 180, 160);
-  doc.roundedRect(14, 8, 22, 22, 3, 3, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('+', 21, 23);
-
-  // Title
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text('EMOTION DETECTOR HEALTH REPORT', 42, 17);
-
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(148, 163, 184);
-  doc.text('Comprehensive Emotion & Biometric Analysis', 42, 24);
-  doc.text(`Report ID: ED-${Date.now().toString(36).toUpperCase()}`, 42, 30);
-
-  // Right side info
-  doc.setTextColor(148, 163, 184);
-  doc.setFontSize(7);
-  const rightX = 196;
-  doc.text(`Date: ${now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, rightX, 10, { align: 'right' });
-  doc.text(`Time: ${now.toLocaleTimeString()}`, rightX, 15, { align: 'right' });
-  doc.text(`Session: ${sessionId}`, rightX, 20, { align: 'right' });
-  doc.text(`Data Points: ${0}`, rightX, 25, { align: 'right' }); // will be overwritten
-  doc.text(`Status: ${status.toUpperCase()}`, rightX, 30, { align: 'right' });
+function drawGradientRect(doc: jsPDF, x: number, y: number, w: number, h: number, c1: [number, number, number], c2: [number, number, number], steps = 30) {
+  const stepH = h / steps;
+  for (let i = 0; i < steps; i++) {
+    const t = i / steps;
+    doc.setFillColor(
+      Math.round(c1[0] + (c2[0] - c1[0]) * t),
+      Math.round(c1[1] + (c2[1] - c1[1]) * t),
+      Math.round(c1[2] + (c2[2] - c1[2]) * t)
+    );
+    doc.rect(x, y + i * stepH, w, stepH + 0.5, 'F');
+  }
 }
 
-function drawSectionTitle(doc: jsPDF, title: string, y: number, color: [number, number, number] = [45, 180, 160]) {
-  doc.setFillColor(color[0], color[1], color[2]);
-  doc.rect(14, y - 4, 3, 12, 'F');
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(30, 41, 59);
-  doc.text(title, 20, y + 4);
-  // Underline
-  doc.setDrawColor(226, 232, 240);
+function drawCircularScore(doc: jsPDF, score: number, label: string, x: number, y: number, color: [number, number, number]) {
+  // Background circle
+  doc.setFillColor(245, 247, 250);
+  doc.circle(x, y, 14, 'F');
+  doc.setDrawColor(230, 230, 230);
   doc.setLineWidth(0.3);
-  doc.line(14, y + 8, 196, y + 8);
-  return y + 12;
-}
+  doc.circle(x, y, 14, 'S');
 
-function drawStatusBadge(doc: jsPDF, status: string, x: number, y: number) {
-  const sc = STATUS_COLORS[status] || STATUS_COLORS.optimal;
-  doc.setFillColor(sc[0], sc[1], sc[2]);
-  doc.roundedRect(x, y, 30, 8, 2, 2, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'bold');
-  doc.text(status.toUpperCase(), x + 15, y + 5.5, { align: 'center' });
-}
+  // Score arc (simulated with thick colored border)
+  doc.setDrawColor(color[0], color[1], color[2]);
+  doc.setLineWidth(2.5);
+  // Draw partial arc using line segments
+  const startAngle = -Math.PI / 2;
+  const endAngle = startAngle + (Math.PI * 2 * (score / 100));
+  const segments = Math.max(1, Math.floor(score / 3));
+  for (let i = 0; i < segments; i++) {
+    const a1 = startAngle + (endAngle - startAngle) * (i / segments);
+    const a2 = startAngle + (endAngle - startAngle) * ((i + 1) / segments);
+    const x1 = x + 12 * Math.cos(a1);
+    const y1 = y + 12 * Math.sin(a1);
+    const x2 = x + 12 * Math.cos(a2);
+    const y2 = y + 12 * Math.sin(a2);
+    doc.line(x1, y1, x2, y2);
+  }
 
-function drawMetricCard(doc: jsPDF, label: string, value: string, unit: string, range: string, x: number, y: number, isNormal: boolean) {
-  // Card bg
-  doc.setFillColor(isNormal ? 240 : 255, isNormal ? 253 : 245, isNormal ? 244 : 245);
-  doc.roundedRect(x, y, 55, 22, 2, 2, 'F');
-
-  // Border
-  doc.setDrawColor(isNormal ? 187 : 252, isNormal ? 247 : 165, isNormal ? 208 : 165);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(x, y, 55, 22, 2, 2, 'S');
-
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 116, 139);
-  doc.text(label, x + 4, y + 6);
-
+  // Score text
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(isNormal ? 34 : 239, isNormal ? 197 : 68, isNormal ? 94 : 68);
-  doc.text(value, x + 4, y + 15);
+  doc.setTextColor(color[0], color[1], color[2]);
+  doc.text(`${score}`, x, y + 2, { align: 'center' });
 
-  doc.setFontSize(7);
+  // Label
+  doc.setFontSize(6);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(148, 163, 184);
-  doc.text(unit, x + 4 + doc.getTextWidth(value) * 14 / doc.getFontSize() + 2, y + 15);
-  doc.text(`Normal: ${range}`, x + 4, y + 20);
+  doc.setTextColor(100, 116, 139);
+  doc.text(label, x, y + 19, { align: 'center' });
+}
+
+function drawMiniBar(doc: jsPDF, x: number, y: number, width: number, pct: number, color: [number, number, number]) {
+  // Track
+  doc.setFillColor(240, 242, 245);
+  doc.roundedRect(x, y, width, 4, 2, 2, 'F');
+  // Fill
+  const fillW = Math.max(2, (pct / 100) * width);
+  doc.setFillColor(color[0], color[1], color[2]);
+  doc.roundedRect(x, y, fillW, 4, 2, 2, 'F');
 }
 
 export function ReportExport({ history, sessionId }: ReportExportProps) {
@@ -139,268 +104,497 @@ export function ReportExport({ history, sessionId }: ReportExportProps) {
     const now = new Date();
     const status = getHealthStatus(latest.health);
     const recommendations = getRecommendations(latest.dominantEmotion, latest.health);
+    const h = latest.health;
 
-    // === PAGE 1 ===
-    drawHeader(doc, now, sessionId || 'N/A', status);
+    // Calculate scores
+    const emotionFreq: Record<string, number> = {};
+    history.forEach(s => { emotionFreq[s.dominantEmotion] = (emotionFreq[s.dominantEmotion] || 0) + 1; });
+    const sortedEmotions = Object.entries(emotionFreq).sort((a, b) => b[1] - a[1]);
+    const positiveEmotions = ['happiness', 'calmness', 'focus'];
+    const positiveCount = history.filter(s => positiveEmotions.includes(s.dominantEmotion)).length;
+    const wellnessScore = Math.round((positiveCount / history.length) * 100);
+    const stressScore = Math.min(100, Math.round(h.cortisolIndex * 1.5));
+    const vitalScore = Math.round(
+      ((h.heartRate >= 60 && h.heartRate <= 100 ? 25 : 10) +
+       (h.hrv >= 20 && h.hrv <= 70 ? 25 : 10) +
+       (h.oxygenSaturation >= 95 ? 25 : 10) +
+       (h.breathingRate >= 12 && h.breathingRate <= 20 ? 25 : 10))
+    );
+    const overallScore = Math.round((wellnessScore * 0.4) + (vitalScore * 0.3) + ((100 - stressScore) * 0.3));
 
-    // Patient info bar
-    let y = 46;
-    doc.setFillColor(248, 250, 252);
-    doc.rect(14, y, 182, 14, 'F');
+    const sc = STATUS_COLORS[status] || STATUS_COLORS.optimal;
+
+    // ═══════════════════════════════════════════
+    // PAGE 1 — EXECUTIVE SUMMARY
+    // ═══════════════════════════════════════════
+
+    // Header gradient
+    drawGradientRect(doc, 0, 0, 210, 50, [15, 23, 42], [30, 41, 59]);
+
+    // Accent line
+    doc.setFillColor(sc[0], sc[1], sc[2]);
+    doc.rect(0, 50, 210, 2.5, 'F');
+
+    // Logo area
+    doc.setFillColor(16, 185, 129);
+    doc.roundedRect(14, 10, 28, 28, 4, 4, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ED', 28, 28, { align: 'center' });
+    doc.setFontSize(6);
+    doc.text('REPORT', 28, 34, { align: 'center' });
+
+    // Title
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('Mental Health Report', 48, 22);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(148, 163, 184);
+    doc.text('Comprehensive Emotion & Wellness Analysis', 48, 30);
+    doc.text(`${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`, 48, 38);
+
+    // Right side meta
+    doc.setFontSize(7);
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Report #ED-${Date.now().toString(36).toUpperCase()}`, 196, 14, { align: 'right' });
+    doc.text(`Session: ${sessionId || 'LIVE'}`, 196, 20, { align: 'right' });
+    doc.text(`${history.length} data points analyzed`, 196, 26, { align: 'right' });
+    doc.text(`Duration: ${history.length > 1 ? Math.round((history[history.length - 1].timestamp.getTime() - history[0].timestamp.getTime()) / 60000) : 0} min`, 196, 32, { align: 'right' });
+
+    // ── Overall Score Card ──
+    let y = 60;
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(14, y, 182, 42, 3, 3, 'F');
+    doc.setDrawColor(230, 232, 236);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(14, y, 182, 42, 3, 3, 'S');
+
+    // Overall score circle
+    drawCircularScore(doc, overallScore, 'OVERALL', 42, y + 18, overallScore >= 70 ? [16, 185, 129] : overallScore >= 40 ? [245, 158, 11] : [239, 68, 68]);
+
+    // Mini scores
+    drawCircularScore(doc, wellnessScore, 'WELLNESS', 82, y + 18, [59, 130, 246]);
+    drawCircularScore(doc, vitalScore, 'VITALS', 118, y + 18, [139, 92, 246]);
+    drawCircularScore(doc, Math.max(0, 100 - stressScore), 'CALM', 154, y + 18, [6, 182, 212]);
+
+    // Status badge
+    doc.setFillColor(sc[0], sc[1], sc[2]);
+    doc.roundedRect(160, y + 32, 32, 7, 2, 2, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'bold');
+    doc.text(status.toUpperCase(), 176, y + 37, { align: 'center' });
+
+    y += 50;
+
+    // ── Emotion Breakdown ──
+    doc.setFillColor(16, 185, 129);
+    doc.rect(14, y, 3, 10, 'F');
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('Emotion Breakdown', 20, y + 7);
+    doc.setDrawColor(230, 232, 236);
+    doc.line(14, y + 12, 196, y + 12);
+    y += 18;
+
+    // Emotion bars with percentage
+    latest.emotions.forEach((e, i) => {
+      if (y > 260) return;
+      const ec = EMOTION_HEX[e.emotion] || [150, 150, 150];
+      const label = emotionLabels[e.emotion] || e.emotion;
+
+      // Emotion color dot
+      doc.setFillColor(ec[0], ec[1], ec[2]);
+      doc.circle(18, y + 2, 2.5, 'F');
+
+      // Label
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(51, 65, 85);
+      doc.text(label, 24, y + 4);
+
+      // Percentage
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(ec[0], ec[1], ec[2]);
+      doc.text(`${e.confidence}%`, 75, y + 4);
+
+      // Bar
+      drawMiniBar(doc, 90, y, 100, e.confidence, ec);
+
+      // Intensity label
+      doc.setFontSize(6);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(148, 163, 184);
+      const level = e.confidence > 60 ? 'High' : e.confidence > 30 ? 'Moderate' : 'Low';
+      doc.text(level, 193, y + 3);
+
+      y += 10;
+    });
+
+    y += 4;
+
+    // ── Dominant Emotion Highlight ──
+    const dominantColor = EMOTION_HEX[latest.dominantEmotion] || [100, 100, 100];
+    doc.setFillColor(dominantColor[0], dominantColor[1], dominantColor[2]);
+    doc.roundedRect(14, y, 182, 18, 3, 3, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Dominant Mood: ${emotionLabels[latest.dominantEmotion]}`, 22, y + 8);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Detected with ${latest.emotions[0]?.confidence || 0}% confidence across ${history.length} readings`, 22, y + 14);
+    y += 24;
+
+    // ── Session Emotion Frequency (Pie-style list) ──
+    if (y < 230) {
+      doc.setFillColor(59, 130, 246);
+      doc.rect(14, y, 3, 10, 'F');
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      doc.text('Session Emotion Distribution', 20, y + 7);
+      doc.setDrawColor(230, 232, 236);
+      doc.line(14, y + 12, 196, y + 12);
+      y += 18;
+
+      sortedEmotions.forEach(([emotion, count]) => {
+        if (y > 265) return;
+        const pct = Math.round((count / history.length) * 100);
+        const ec = EMOTION_HEX[emotion as EmotionType] || [150, 150, 150];
+
+        doc.setFillColor(ec[0], ec[1], ec[2]);
+        doc.circle(18, y + 2, 2, 'F');
+
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(51, 65, 85);
+        doc.text(`${emotionLabels[emotion as EmotionType] || emotion}`, 24, y + 3);
+
+        // Percentage bar
+        drawMiniBar(doc, 75, y, 80, pct, ec);
+
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(ec[0], ec[1], ec[2]);
+        doc.text(`${pct}%`, 160, y + 3);
+
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(148, 163, 184);
+        doc.text(`(${count} readings)`, 172, y + 3);
+
+        y += 9;
+      });
+    }
+
+    // ═══════════════════════════════════════════
+    // PAGE 2 — VITALS & HEALTH DETAILS
+    // ═══════════════════════════════════════════
+    doc.addPage();
+
+    // Mini header
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Vital Signs & Health Assessment', 14, 13);
     doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(71, 85, 105);
-    doc.text(`Analysis Duration: ${history.length > 1 ? Math.round((history[history.length - 1].timestamp.getTime() - history[0].timestamp.getTime()) / 60000) : 0} min`, 18, y + 6);
-    doc.text(`Total Readings: ${history.length}`, 80, y + 6);
-    doc.text(`Dominant Emotion: ${emotionLabels[latest.dominantEmotion]}`, 130, y + 6);
-    drawStatusBadge(doc, status, 18, y + 8);
-    y += 20;
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Page 2 · ${now.toLocaleDateString()}`, 196, 13, { align: 'right' });
 
-    // SECTION: Vital Signs
-    y = drawSectionTitle(doc, 'VITAL SIGNS & BIOMETRICS', y);
-    y += 2;
+    doc.setFillColor(sc[0], sc[1], sc[2]);
+    doc.rect(0, 20, 210, 1.5, 'F');
 
-    const h = latest.health;
+    y = 30;
+
+    // Vital cards in 2x3 grid
     const vitals = [
-      { label: 'Heart Rate', value: String(h.heartRate), unit: 'BPM', range: '60–100', normal: h.heartRate >= 60 && h.heartRate <= 100 },
-      { label: 'Heart Rate Variability', value: String(h.hrv), unit: 'ms', range: '20–70', normal: h.hrv >= 20 && h.hrv <= 70 },
-      { label: 'Cortisol Stress Index', value: String(h.cortisolIndex), unit: 'idx', range: '0–40', normal: h.cortisolIndex <= 40 },
-      { label: 'Oxygen Saturation (SpO₂)', value: String(h.oxygenSaturation), unit: '%', range: '95–100', normal: h.oxygenSaturation >= 95 },
-      { label: 'Breathing Rate', value: String(h.breathingRate), unit: 'br/min', range: '12–20', normal: h.breathingRate >= 12 && h.breathingRate <= 20 },
-      { label: 'Reaction Time', value: String(h.reactionTime), unit: 'ms', range: '150–300', normal: h.reactionTime >= 150 && h.reactionTime <= 300 },
+      { label: 'Heart Rate', value: `${h.heartRate}`, unit: 'BPM', range: '60–100', normal: h.heartRate >= 60 && h.heartRate <= 100, icon: '❤️', pct: Math.min(100, Math.round((h.heartRate / 120) * 100)) },
+      { label: 'HRV', value: `${h.hrv}`, unit: 'ms', range: '20–70', normal: h.hrv >= 20 && h.hrv <= 70, icon: '📊', pct: Math.min(100, Math.round((h.hrv / 80) * 100)) },
+      { label: 'Cortisol Index', value: `${h.cortisolIndex}`, unit: 'idx', range: '0–40', normal: h.cortisolIndex <= 40, icon: '🧬', pct: Math.min(100, h.cortisolIndex) },
+      { label: 'SpO₂', value: `${h.oxygenSaturation}`, unit: '%', range: '95–100', normal: h.oxygenSaturation >= 95, icon: '🫁', pct: h.oxygenSaturation },
+      { label: 'Breathing Rate', value: `${h.breathingRate}`, unit: 'br/min', range: '12–20', normal: h.breathingRate >= 12 && h.breathingRate <= 20, icon: '🌬️', pct: Math.min(100, Math.round((h.breathingRate / 25) * 100)) },
+      { label: 'Reaction Time', value: `${h.reactionTime}`, unit: 'ms', range: '150–300', normal: h.reactionTime >= 150 && h.reactionTime <= 300, icon: '⚡', pct: Math.min(100, Math.round((300 - Math.min(h.reactionTime, 300)) / 300 * 100 + 30)) },
     ];
 
     vitals.forEach((v, i) => {
       const col = i % 3;
       const row = Math.floor(i / 3);
-      drawMetricCard(doc, v.label, v.value, v.unit, v.range, 14 + col * 61, y + row * 26, v.normal);
-    });
-    y += 56;
+      const cx = 14 + col * 62;
+      const cy = y + row * 34;
 
-    // SECTION: Emotional Analysis
-    y = drawSectionTitle(doc, 'EMOTIONAL STATE ANALYSIS', y);
-    autoTable(doc, {
-      startY: y,
-      head: [['Emotion', 'Confidence', 'Intensity Level', 'Clinical Indicator']],
-      body: latest.emotions.map(e => {
-        const level = e.confidence > 60 ? 'HIGH' : e.confidence > 30 ? 'MODERATE' : 'LOW';
-        const indicator = e.confidence > 60 ? 'Primary State' : e.confidence > 30 ? 'Secondary State' : 'Background Trace';
-        return [emotionLabels[e.emotion], `${e.confidence}%`, level, indicator];
-      }),
-      theme: 'grid',
-      headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
-      bodyStyles: { fontSize: 8 },
-      alternateRowStyles: { fillColor: [248, 250, 252] },
-      styles: { cellPadding: 3 },
-      columnStyles: {
-        0: { cellWidth: 45 },
-        1: { cellWidth: 30, halign: 'center' },
-        2: { cellWidth: 35, halign: 'center' },
-        3: { cellWidth: 50 },
-      },
-    });
+      const borderColor: [number, number, number] = v.normal ? [209, 250, 229] : [254, 202, 202];
+      const bgColor: [number, number, number] = v.normal ? [240, 253, 244] : [254, 242, 242];
+      const valueColor: [number, number, number] = v.normal ? [16, 185, 129] : [239, 68, 68];
 
-    // SECTION: Health Assessment
-    y = (doc as any).lastAutoTable.finalY + 10;
-    y = drawSectionTitle(doc, 'HEALTH RISK ASSESSMENT', y);
+      doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
+      doc.roundedRect(cx, cy, 58, 30, 3, 3, 'F');
+      doc.setDrawColor(borderColor[0], borderColor[1], borderColor[2]);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(cx, cy, 58, 30, 3, 3, 'S');
 
-    // Risk assessment summary
-    const riskFactors = [];
-    if (h.cortisolIndex > 50) riskFactors.push({ factor: 'Elevated Cortisol', risk: 'High', detail: 'Indicates chronic stress response' });
-    if (h.heartRate > 85) riskFactors.push({ factor: 'Elevated Heart Rate', risk: 'Moderate', detail: 'Above resting baseline' });
-    if (h.oxygenSaturation < 96) riskFactors.push({ factor: 'Low SpO₂', risk: 'High', detail: 'Below optimal oxygenation threshold' });
-    if (h.hrv < 35) riskFactors.push({ factor: 'Low HRV', risk: 'Moderate', detail: 'Reduced autonomic nervous system flexibility' });
-    if (h.breathingRate > 20) riskFactors.push({ factor: 'Elevated Breathing', risk: 'Moderate', detail: 'Possible hyperventilation pattern' });
-    if (riskFactors.length === 0) riskFactors.push({ factor: 'No Significant Risks', risk: 'Low', detail: 'All vitals within normal parameters' });
+      // Label
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text(`${v.icon} ${v.label}`, cx + 4, cy + 7);
 
-    autoTable(doc, {
-      startY: y,
-      head: [['Risk Factor', 'Severity', 'Clinical Detail']],
-      body: riskFactors.map(r => [r.factor, r.risk, r.detail]),
-      theme: 'grid',
-      headStyles: { fillColor: [220, 38, 38], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
-      bodyStyles: { fontSize: 8 },
-      alternateRowStyles: { fillColor: [254, 242, 242] },
-      styles: { cellPadding: 3 },
+      // Value
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(valueColor[0], valueColor[1], valueColor[2]);
+      doc.text(v.value, cx + 4, cy + 18);
+
+      // Unit
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(148, 163, 184);
+      const valWidth = doc.getTextWidth(v.value) * 16 / 7;
+      doc.text(v.unit, cx + 6 + valWidth, cy + 18);
+
+      // Range & status
+      doc.setFontSize(6);
+      doc.text(`Normal: ${v.range}`, cx + 4, cy + 24);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(valueColor[0], valueColor[1], valueColor[2]);
+      doc.text(v.normal ? '✓ Normal' : '⚠ Abnormal', cx + 36, cy + 24);
+
+      // Mini progress bar
+      drawMiniBar(doc, cx + 4, cy + 26, 50, v.pct, valueColor);
     });
 
-    // SECTION: Clinical Recommendations
-    y = (doc as any).lastAutoTable.finalY + 10;
-    if (y > 240) { doc.addPage(); y = 20; }
-    y = drawSectionTitle(doc, 'CLINICAL RECOMMENDATIONS', y, [59, 130, 246]);
+    y += 74;
 
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(51, 65, 85);
-    recommendations.forEach((rec, i) => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      doc.setFillColor(i % 2 === 0 ? 248 : 255, i % 2 === 0 ? 250 : 255, i % 2 === 0 ? 252 : 255);
-      doc.rect(14, y - 3, 182, 8, 'F');
-      doc.setFillColor(59, 130, 246);
-      doc.circle(18, y + 1, 1.5, 'F');
+    // ── Risk Assessment ──
+    doc.setFillColor(239, 68, 68);
+    doc.rect(14, y, 3, 10, 'F');
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('Health Risk Assessment', 20, y + 7);
+    doc.setDrawColor(230, 232, 236);
+    doc.line(14, y + 12, 196, y + 12);
+    y += 16;
+
+    const riskFactors: { factor: string; risk: string; detail: string; color: [number, number, number] }[] = [];
+    if (h.cortisolIndex > 50) riskFactors.push({ factor: '🔴 High Cortisol', risk: 'High', detail: 'Indicates chronic stress — consider relaxation techniques', color: [239, 68, 68] });
+    if (h.heartRate > 85) riskFactors.push({ factor: '🟠 Elevated Heart Rate', risk: 'Moderate', detail: 'Above resting baseline — monitor for sustained elevation', color: [249, 115, 22] });
+    if (h.oxygenSaturation < 96) riskFactors.push({ factor: '🔴 Low SpO₂', risk: 'High', detail: 'Below optimal — ensure adequate breathing', color: [239, 68, 68] });
+    if (h.hrv < 35) riskFactors.push({ factor: '🟡 Low HRV', risk: 'Moderate', detail: 'Reduced autonomic flexibility — may indicate fatigue', color: [245, 158, 11] });
+    if (h.breathingRate > 20) riskFactors.push({ factor: '🟠 Fast Breathing', risk: 'Moderate', detail: 'Possible hyperventilation — practice slow breathing', color: [249, 115, 22] });
+    if (riskFactors.length === 0) riskFactors.push({ factor: '🟢 All Clear', risk: 'Low', detail: 'All vitals within healthy range — keep it up!', color: [16, 185, 129] });
+
+    riskFactors.forEach((rf) => {
+      doc.setFillColor(rf.color[0], rf.color[1], rf.color[2]);
+      doc.roundedRect(14, y, 3, 12, 1, 1, 'F');
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(51, 65, 85);
+      doc.text(rf.factor, 20, y + 5);
+
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text(rf.detail, 20, y + 11);
+
+      // Risk badge
+      doc.setFillColor(rf.color[0], rf.color[1], rf.color[2]);
+      doc.roundedRect(170, y + 1, 22, 6, 2, 2, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(6);
-      doc.text(String(i + 1), 17, y + 2.5);
-      doc.setTextColor(51, 65, 85);
+      doc.setFont('helvetica', 'bold');
+      doc.text(rf.risk.toUpperCase(), 181, y + 5, { align: 'center' });
+
+      y += 16;
+    });
+
+    y += 4;
+
+    // ── Recommendations ──
+    doc.setFillColor(59, 130, 246);
+    doc.rect(14, y, 3, 10, 'F');
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('Personalized Recommendations', 20, y + 7);
+    doc.setDrawColor(230, 232, 236);
+    doc.line(14, y + 12, 196, y + 12);
+    y += 18;
+
+    recommendations.forEach((rec, i) => {
+      if (y > 265) { doc.addPage(); y = 20; }
+
+      // Numbered circle
+      doc.setFillColor(59, 130, 246);
+      doc.circle(18, y + 1.5, 3.5, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${i + 1}`, 18, y + 3, { align: 'center' });
+
+      // Recommendation text
       doc.setFontSize(8);
-      doc.text(rec, 24, y + 2);
-      y += 10;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(51, 65, 85);
+      const lines = doc.splitTextToSize(rec, 165);
+      doc.text(lines, 26, y + 3);
+
+      y += 6 + (lines.length - 1) * 4;
+      // Subtle divider
+      doc.setDrawColor(240, 242, 245);
+      doc.setLineWidth(0.2);
+      doc.line(26, y, 196, y);
+      y += 4;
     });
 
-    // === PAGE 2 ===
+    // ═══════════════════════════════════════════
+    // PAGE 3 — TIMELINE & TRENDS
+    // ═══════════════════════════════════════════
     doc.addPage();
-    y = 20;
 
-    // SECTION: Gesture & Sign Language Detection Reference
-    y = drawSectionTitle(doc, 'GESTURE COMMAND REFERENCE', y, [168, 85, 247]);
+    // Mini header
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Session Timeline & Trends', 14, 13);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Page 3 · ${now.toLocaleDateString()}`, 196, 13, { align: 'right' });
+    doc.setFillColor(sc[0], sc[1], sc[2]);
+    doc.rect(0, 20, 210, 1.5, 'F');
 
-    autoTable(doc, {
-      startY: y,
-      head: [['Gesture / Hand Position', 'Command / Meaning']],
-      body: Object.entries(GESTURE_COMMANDS).map(([gesture, meaning]) => [gesture, meaning]),
-      theme: 'grid',
-      headStyles: { fillColor: [109, 40, 217], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
-      bodyStyles: { fontSize: 8 },
-      alternateRowStyles: { fillColor: [245, 243, 255] },
-      styles: { cellPadding: 3 },
-    });
+    y = 30;
 
-    y = (doc as any).lastAutoTable.finalY + 10;
+    // Trend summary table
+    doc.setFillColor(139, 92, 246);
+    doc.rect(14, y, 3, 10, 'F');
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('Trend Summary', 20, y + 7);
+    doc.setDrawColor(230, 232, 236);
+    doc.line(14, y + 12, 196, y + 12);
+    y += 16;
 
-    // SECTION: Sign Language Letter Mapping
-    y = drawSectionTitle(doc, 'ASL SIGN LANGUAGE DETECTION MAP', y, [236, 72, 153]);
-
-    const signRows = Object.entries(SIGN_LANGUAGE_MAP).map(([letter, msg]) => [letter.toUpperCase(), msg]);
-    // Split into 2 columns of 13 rows each
-    const half = Math.ceil(signRows.length / 2);
-    const leftCol = signRows.slice(0, half);
-    const rightCol = signRows.slice(half);
-    const mergedRows = leftCol.map((l, i) => {
-      const r = rightCol[i] || ['', ''];
-      return [l[0], l[1], r[0], r[1]];
-    });
-
-    autoTable(doc, {
-      startY: y,
-      head: [['Letter', 'Message', 'Letter', 'Message']],
-      body: mergedRows,
-      theme: 'grid',
-      headStyles: { fillColor: [219, 39, 119], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
-      bodyStyles: { fontSize: 7 },
-      alternateRowStyles: { fillColor: [253, 242, 248] },
-      styles: { cellPadding: 2 },
-      columnStyles: {
-        0: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
-        1: { cellWidth: 75 },
-        2: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
-        3: { cellWidth: 75 },
-      },
-    });
-
-    // SECTION: Detection Timeline Log
-    y = (doc as any).lastAutoTable.finalY + 10;
-    if (y > 220) { doc.addPage(); y = 20; }
-    y = drawSectionTitle(doc, 'DETECTION TIMELINE LOG', y, [14, 165, 233]);
-
-    autoTable(doc, {
-      startY: y,
-      head: [['#', 'Timestamp', 'Dominant Emotion', 'HR (BPM)', 'HRV (ms)', 'Cortisol', 'SpO₂ (%)', 'Breathing']],
-      body: history.slice(-15).map((s, i) => [
-        String(i + 1),
-        s.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        emotionLabels[s.dominantEmotion] || s.dominantEmotion,
-        String(s.health.heartRate),
-        String(s.health.hrv),
-        String(s.health.cortisolIndex),
-        String(s.health.oxygenSaturation),
-        String(s.health.breathingRate),
-      ]),
-      theme: 'grid',
-      headStyles: { fillColor: [2, 132, 199], textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold' },
-      bodyStyles: { fontSize: 7 },
-      alternateRowStyles: { fillColor: [240, 249, 255] },
-      styles: { cellPadding: 2 },
-      columnStyles: {
-        0: { cellWidth: 8, halign: 'center' },
-        1: { cellWidth: 24 },
-      },
-    });
-
-    // SECTION: Trend Summary
-    y = (doc as any).lastAutoTable.finalY + 10;
-    if (y > 250) { doc.addPage(); y = 20; }
-    y = drawSectionTitle(doc, 'SESSION TREND SUMMARY', y, [245, 158, 11]);
-
-    // Calculate averages
     const avgHR = Math.round(history.reduce((a, b) => a + b.health.heartRate, 0) / history.length);
     const avgHRV = Math.round(history.reduce((a, b) => a + b.health.hrv, 0) / history.length);
     const avgCortisol = Math.round(history.reduce((a, b) => a + b.health.cortisolIndex, 0) / history.length);
     const avgSpO2 = Math.round(history.reduce((a, b) => a + b.health.oxygenSaturation, 0) / history.length * 10) / 10;
 
-    // Emotion frequency
-    const emotionFreq: Record<string, number> = {};
-    history.forEach(s => {
-      emotionFreq[s.dominantEmotion] = (emotionFreq[s.dominantEmotion] || 0) + 1;
+    autoTable(doc, {
+      startY: y,
+      head: [['Metric', 'Average', 'Min', 'Max', 'Status']],
+      body: [
+        ['❤️ Heart Rate', `${avgHR} BPM`, `${Math.min(...history.map(s => s.health.heartRate))} BPM`, `${Math.max(...history.map(s => s.health.heartRate))} BPM`, avgHR >= 60 && avgHR <= 100 ? '✅ Normal' : '⚠️ Abnormal'],
+        ['📊 HRV', `${avgHRV} ms`, `${Math.min(...history.map(s => s.health.hrv))} ms`, `${Math.max(...history.map(s => s.health.hrv))} ms`, avgHRV >= 20 ? '✅ Normal' : '⚠️ Low'],
+        ['🧬 Cortisol', `${avgCortisol}`, `${Math.min(...history.map(s => s.health.cortisolIndex))}`, `${Math.max(...history.map(s => s.health.cortisolIndex))}`, avgCortisol <= 40 ? '✅ Normal' : '⚠️ Elevated'],
+        ['🫁 SpO₂', `${avgSpO2}%`, `${Math.min(...history.map(s => s.health.oxygenSaturation))}%`, `${Math.max(...history.map(s => s.health.oxygenSaturation))}%`, avgSpO2 >= 95 ? '✅ Normal' : '⚠️ Low'],
+      ],
+      theme: 'grid',
+      headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold', cellPadding: 4 },
+      bodyStyles: { fontSize: 8, cellPadding: 4 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      columnStyles: {
+        4: { fontStyle: 'bold' },
+      },
     });
-    const sortedEmotions = Object.entries(emotionFreq).sort((a, b) => b[1] - a[1]);
+
+    // Detection Log
+    y = (doc as any).lastAutoTable.finalY + 12;
+    doc.setFillColor(14, 165, 233);
+    doc.rect(14, y, 3, 10, 'F');
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('Detection Timeline Log', 20, y + 7);
+    doc.setDrawColor(230, 232, 236);
+    doc.line(14, y + 12, 196, y + 12);
+    y += 16;
 
     autoTable(doc, {
       startY: y,
-      head: [['Metric', 'Average', 'Min', 'Max', 'Assessment']],
-      body: [
-        ['Heart Rate', `${avgHR} BPM`, `${Math.min(...history.map(h => h.health.heartRate))} BPM`, `${Math.max(...history.map(h => h.health.heartRate))} BPM`, avgHR >= 60 && avgHR <= 100 ? 'Normal' : 'Abnormal'],
-        ['HRV', `${avgHRV} ms`, `${Math.min(...history.map(h => h.health.hrv))} ms`, `${Math.max(...history.map(h => h.health.hrv))} ms`, avgHRV >= 20 ? 'Normal' : 'Low'],
-        ['Cortisol', `${avgCortisol}`, `${Math.min(...history.map(h => h.health.cortisolIndex))}`, `${Math.max(...history.map(h => h.health.cortisolIndex))}`, avgCortisol <= 40 ? 'Normal' : 'Elevated'],
-        ['SpO₂', `${avgSpO2}%`, `${Math.min(...history.map(h => h.health.oxygenSaturation))}%`, `${Math.max(...history.map(h => h.health.oxygenSaturation))}%`, avgSpO2 >= 95 ? 'Normal' : 'Low'],
-      ],
+      head: [['#', 'Time', 'Emotion', 'Confidence', 'HR', 'SpO₂', 'Cortisol']],
+      body: history.slice(-15).map((s, i) => [
+        String(i + 1),
+        s.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        emotionLabels[s.dominantEmotion] || s.dominantEmotion,
+        `${s.emotions[0]?.confidence || 0}%`,
+        `${s.health.heartRate} BPM`,
+        `${s.health.oxygenSaturation}%`,
+        `${s.health.cortisolIndex}`,
+      ]),
       theme: 'grid',
-      headStyles: { fillColor: [180, 83, 9], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
-      bodyStyles: { fontSize: 8 },
-      alternateRowStyles: { fillColor: [255, 251, 235] },
-      styles: { cellPadding: 3 },
+      headStyles: { fillColor: [14, 165, 233], textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold', cellPadding: 3 },
+      bodyStyles: { fontSize: 7, cellPadding: 3 },
+      alternateRowStyles: { fillColor: [240, 249, 255] },
+      columnStyles: {
+        0: { cellWidth: 8, halign: 'center' },
+        3: { halign: 'center', fontStyle: 'bold' },
+      },
     });
 
-    // Dominant emotion breakdown
-    y = (doc as any).lastAutoTable.finalY + 6;
-    doc.setFontSize(8);
+    // ── What This Report Means (easy to understand section) ──
+    y = (doc as any).lastAutoTable.finalY + 12;
+    if (y > 220) { doc.addPage(); y = 20; }
+
+    doc.setFillColor(245, 158, 11);
+    doc.rect(14, y, 3, 10, 'F');
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(71, 85, 105);
-    doc.text('Emotion Frequency Distribution:', 14, y + 4);
-    y += 8;
-    sortedEmotions.forEach(([emotion, count]) => {
-      const pct = Math.round((count / history.length) * 100);
-      const barWidth = pct * 1.2;
-      doc.setFillColor(226, 232, 240);
-      doc.roundedRect(14, y, 120, 5, 1, 1, 'F');
-      doc.setFillColor(45, 180, 160);
-      doc.roundedRect(14, y, Math.min(barWidth, 120), 5, 1, 1, 'F');
-      doc.setFontSize(7);
+    doc.setTextColor(30, 41, 59);
+    doc.text('What This Report Means — In Simple Terms', 20, y + 7);
+    doc.setDrawColor(230, 232, 236);
+    doc.line(14, y + 12, 196, y + 12);
+    y += 18;
+
+    const interpretations = [
+      `Your overall mental wellness score is ${overallScore}/100 — ${overallScore >= 70 ? 'this is great! Your emotional state is healthy.' : overallScore >= 40 ? 'this is moderate. Some areas need attention.' : 'this needs improvement. Consider seeking support.'}`,
+      `Your dominant emotion during this session was "${emotionLabels[latest.dominantEmotion]}" (${latest.emotions[0]?.confidence || 0}% confidence). ${positiveEmotions.includes(latest.dominantEmotion) ? 'This is a positive emotional state.' : 'Consider activities that promote positive emotions.'}`,
+      `Stress levels are ${stressScore > 60 ? 'elevated — deep breathing, meditation, or a short walk can help.' : stressScore > 30 ? 'moderate — maintaining current routines is advisable.' : 'low — you are managing stress well.'}`,
+      `Your heart and breathing vitals are ${vitalScore >= 80 ? 'within healthy ranges — excellent physical regulation.' : 'showing some variation — keep monitoring and stay hydrated.'}`,
+    ];
+
+    interpretations.forEach((text) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.setFillColor(255, 251, 235);
+      doc.roundedRect(14, y - 2, 182, 12, 2, 2, 'F');
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(51, 65, 85);
-      doc.text(`${emotionLabels[emotion as EmotionType] || emotion}  (${pct}%)`, 138, y + 4);
-      y += 7;
+      doc.setTextColor(71, 85, 105);
+      const lines = doc.splitTextToSize(`💡 ${text}`, 174);
+      doc.text(lines, 18, y + 4);
+      y += 6 + (lines.length) * 4;
     });
 
-    // === FOOTER on all pages ===
+    // ═══ FOOTERS ═══
     const totalPages = doc.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {
       doc.setPage(p);
-      // Footer band
-      doc.setFillColor(248, 250, 252);
+      doc.setFillColor(15, 23, 42);
       doc.rect(0, 282, 210, 16, 'F');
-      doc.setDrawColor(226, 232, 240);
-      doc.line(14, 282, 196, 282);
-
       doc.setFontSize(6);
       doc.setTextColor(148, 163, 184);
       doc.setFont('helvetica', 'normal');
-      doc.text('CONFIDENTIAL — This report is generated by Emotion Detector AI for informational purposes only and does not constitute medical advice.', 14, 287);
-      doc.text('Consult a healthcare professional for clinical interpretation. AI-based analysis may have limitations.', 14, 291);
-      doc.text(`Page ${p} of ${totalPages}`, 196, 287, { align: 'right' });
-      doc.text(`Generated: ${now.toISOString()}`, 196, 291, { align: 'right' });
+      doc.text('CONFIDENTIAL — Generated by Emotion Detector AI. For informational purposes only. Not medical advice.', 14, 288);
+      doc.text('Consult a healthcare professional for clinical interpretation.', 14, 292);
+      doc.text(`Page ${p} of ${totalPages}`, 196, 288, { align: 'right' });
+      doc.text(`${now.toISOString()}`, 196, 292, { align: 'right' });
     }
 
-    doc.save(`EmotionDetector-Health-Report-${now.toISOString().slice(0, 10)}.pdf`);
+    doc.save(`EmotionDetector-Mental-Health-Report-${now.toISOString().slice(0, 10)}.pdf`);
   };
 
   return (

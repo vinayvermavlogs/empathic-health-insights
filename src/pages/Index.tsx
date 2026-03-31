@@ -14,12 +14,10 @@ import { DetectionLog } from '@/components/DetectionLog';
 import { ReportExport } from '@/components/ReportExport';
 import { WebcamAnalysis } from '@/components/WebcamAnalysis';
 import { AIInsightsPanel } from '@/components/AIInsightsPanel';
-import { LiveSubtitles } from '@/components/LiveSubtitles';
-import { AISessionSummary } from '@/components/AISessionSummary';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import logoImg from '@/assets/logo.png';
 
 const Index = () => {
@@ -323,7 +321,6 @@ const Index = () => {
               );
             })()}
 
-            <LiveSubtitles />
           </div>
 
           {/* Center Column - Photo Mood & AI */}
@@ -438,8 +435,6 @@ const Index = () => {
             )}
 
             <AIInsightsPanel history={history} />
-            <AISessionSummary history={history} mode="session-summary" />
-            <AISessionSummary history={history} mode="emotion-predict" />
           </div>
 
           {/* Right Column - Panels & Log */}
