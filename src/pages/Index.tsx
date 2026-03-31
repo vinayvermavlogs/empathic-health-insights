@@ -14,8 +14,6 @@ import { DetectionLog } from '@/components/DetectionLog';
 import { ReportExport } from '@/components/ReportExport';
 import { WebcamAnalysis } from '@/components/WebcamAnalysis';
 import { AIInsightsPanel } from '@/components/AIInsightsPanel';
-import { LiveSubtitles } from '@/components/LiveSubtitles';
-import { AISessionSummary } from '@/components/AISessionSummary';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
