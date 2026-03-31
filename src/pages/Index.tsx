@@ -435,8 +435,6 @@ const Index = () => {
             )}
 
             <AIInsightsPanel history={history} />
-            <AISessionSummary history={history} mode="session-summary" />
-            <AISessionSummary history={history} mode="emotion-predict" />
           </div>
 
           {/* Right Column - Panels & Log */}
